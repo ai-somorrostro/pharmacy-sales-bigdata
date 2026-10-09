@@ -218,3 +218,12 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+
+# Datos
+Data/
+*.xlsx
+
+# Notebooks y Node-RED
+.ipynb_checkpoints/
+node_modules/
