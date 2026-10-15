@@ -1,0 +1,371 @@
+[
+    {
+        "id": "700f9ac353fb36c9",
+        "type": "tab",
+        "label": "Flujo 1",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "bf19454eeca75a5c",
+        "type": "tab",
+        "label": "Flujo 2",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "40db5b7632f3135d",
+        "type": "influxdb",
+        "hostname": "127.0.0.1",
+        "port": 8086,
+        "protocol": "http",
+        "database": "database",
+        "name": "",
+        "usetls": false,
+        "tls": "",
+        "influxdbVersion": "2.0",
+        "url": "http://localhost:8086",
+        "timeout": 10,
+        "rejectUnauthorized": true
+    },
+    {
+        "id": "3eb1d2b29cfde0dd",
+        "type": "inject",
+        "z": "700f9ac353fb36c9",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 190,
+        "y": 220,
+        "wires": [
+            [
+                "5545f19af90563ad"
+            ]
+        ]
+    },
+    {
+        "id": "5545f19af90563ad",
+        "type": "file in",
+        "z": "700f9ac353fb36c9",
+        "name": "Ventas Diarias CSV",
+        "filename": "/mnt/c/clase/Reto 0/pharmacy-sales-bigdata/BDA/ventas_diarias.csv",
+        "filenameType": "str",
+        "format": "utf8",
+        "chunk": false,
+        "sendError": false,
+        "encoding": "none",
+        "allProps": false,
+        "x": 370,
+        "y": 220,
+        "wires": [
+            [
+                "8c79e90b2d3b3dd8"
+            ]
+        ]
+    },
+    {
+        "id": "8c79e90b2d3b3dd8",
+        "type": "csv",
+        "z": "700f9ac353fb36c9",
+        "name": "",
+        "spec": "rfc",
+        "sep": ",",
+        "hdrin": true,
+        "hdrout": "none",
+        "multi": "mult",
+        "ret": "\\r\\n",
+        "temp": "",
+        "skip": "0",
+        "strings": true,
+        "include_empty_strings": "",
+        "include_null_values": "",
+        "x": 530,
+        "y": 220,
+        "wires": [
+            [
+                "2c24c7bbe71bb72a"
+            ]
+        ]
+    },
+    {
+        "id": "2c24c7bbe71bb72a",
+        "type": "function",
+        "z": "700f9ac353fb36c9",
+        "name": "a puntos de InfluxDB",
+        "func": "const rows = msg.payload;\nconst CHUNK = 5000;\n\nfor (let i = 0; i < rows.length; i += CHUNK) {\n    const pts = rows.slice(i, i + CHUNK).map(r => {\n        let f = String(r.Fecha).trim();\n        if (f.includes(' ')) f = f.replace(' ', 'T');\n        return {\n            measurement: \"ventas\",\n            tags: {\n                Country: String(r.Country),\n                Category: String(r.Category),\n                PromoFlag: String(r.PromoFlag)\n            },\n            fields: {\n                ventas: Number(r.ventas),\n                unidades: Number(r.unidades),\n                ingresos_eur: Number(r.ingresos_eur),\n                costes_eur: Number(r.costes_eur),\n                margen_eur: Number(r.margen_eur)\n            },\n            timestamp: new Date(f).getTime()\n        };\n    });\n    node.send({ payload: pts });\n}\nnode.status({ text: rows.length + \" filas enviadas\" });\nreturn null;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 740,
+        "y": 220,
+        "wires": [
+            [
+                "962ed7987f4d21ac"
+            ]
+        ]
+    },
+    {
+        "id": "962ed7987f4d21ac",
+        "type": "influxdb batch",
+        "z": "700f9ac353fb36c9",
+        "influxdb": "40db5b7632f3135d",
+        "precision": "",
+        "retentionPolicy": "",
+        "name": "Influx local",
+        "database": "database",
+        "precisionV18FluxV20": "ms",
+        "retentionPolicyV18Flux": "",
+        "org": "somorrostro",
+        "bucket": "ventas_diarias",
+        "x": 950,
+        "y": 220,
+        "wires": []
+    },
+    {
+        "id": "443be6284e75d041",
+        "type": "inject",
+        "z": "700f9ac353fb36c9",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 190,
+        "y": 340,
+        "wires": [
+            [
+                "9eee725df188d6d9"
+            ]
+        ]
+    },
+    {
+        "id": "9eee725df188d6d9",
+        "type": "file in",
+        "z": "700f9ac353fb36c9",
+        "name": "Ventas Mensuales CSV",
+        "filename": "/mnt/c/clase/Reto 0/pharmacy-sales-bigdata/BDA/ventas_mensuales.csv",
+        "filenameType": "str",
+        "format": "utf8",
+        "chunk": false,
+        "sendError": false,
+        "encoding": "none",
+        "allProps": false,
+        "x": 410,
+        "y": 340,
+        "wires": [
+            [
+                "72be3f5c94b7fa7d"
+            ]
+        ]
+    },
+    {
+        "id": "72be3f5c94b7fa7d",
+        "type": "csv",
+        "z": "700f9ac353fb36c9",
+        "name": "",
+        "spec": "rfc",
+        "sep": ",",
+        "hdrin": true,
+        "hdrout": "none",
+        "multi": "mult",
+        "ret": "\\r\\n",
+        "temp": "",
+        "skip": "0",
+        "strings": true,
+        "include_empty_strings": "",
+        "include_null_values": "",
+        "x": 610,
+        "y": 340,
+        "wires": [
+            [
+                "a747fd27f86ec69b"
+            ]
+        ]
+    },
+    {
+        "id": "a747fd27f86ec69b",
+        "type": "function",
+        "z": "700f9ac353fb36c9",
+        "name": "a puntos de Influx",
+        "func": "const rows = msg.payload;\nconst CHUNK = 5000;\n\nfor (let i = 0; i < rows.length; i += CHUNK) {\n    const pts = rows.slice(i, i + CHUNK).map(r => {\n        let f = String(r.Fecha).trim();\n        if (f.includes(' ')) f = f.replace(' ', 'T');\n        return {\n            measurement: \"ventas\",\n            tags: {\n                Country: String(r.Country),\n                Category: String(r.Category),\n                PromoFlag: String(r.PromoFlag)\n            },\n            fields: {\n                ventas: Number(r.ventas),\n                unidades: Number(r.unidades),\n                ingresos_eur: Number(r.ingresos_eur),\n                costes_eur: Number(r.costes_eur),\n                margen_eur: Number(r.margen_eur)\n            },\n            timestamp: new Date(f).getTime()\n        };\n    });\n    node.send({ payload: pts });\n}\nnode.status({ text: rows.length + \" filas enviadas\" });\nreturn null;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 790,
+        "y": 340,
+        "wires": [
+            [
+                "07b1d21c94c1ac39"
+            ]
+        ]
+    },
+    {
+        "id": "07b1d21c94c1ac39",
+        "type": "influxdb batch",
+        "z": "700f9ac353fb36c9",
+        "influxdb": "40db5b7632f3135d",
+        "precision": "",
+        "retentionPolicy": "",
+        "name": "Influx local",
+        "database": "database",
+        "precisionV18FluxV20": "ms",
+        "retentionPolicyV18Flux": "",
+        "org": "somorrostro",
+        "bucket": "ventas_mensuales",
+        "x": 970,
+        "y": 340,
+        "wires": []
+    },
+    {
+        "id": "e5275e1e0a140be9",
+        "type": "inject",
+        "z": "700f9ac353fb36c9",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 190,
+        "y": 480,
+        "wires": [
+            [
+                "9b3e664ee9c70ae1"
+            ]
+        ]
+    },
+    {
+        "id": "9b3e664ee9c70ae1",
+        "type": "file in",
+        "z": "700f9ac353fb36c9",
+        "name": "Ventas simuladas CSV",
+        "filename": "/mnt/c/clase/Reto 0/pharmacy-sales-bigdata/BDA/ventas_simuladas.csv",
+        "filenameType": "str",
+        "format": "utf8",
+        "chunk": false,
+        "sendError": false,
+        "encoding": "none",
+        "allProps": false,
+        "x": 380,
+        "y": 480,
+        "wires": [
+            [
+                "961069aaa7592aff"
+            ]
+        ]
+    },
+    {
+        "id": "961069aaa7592aff",
+        "type": "csv",
+        "z": "700f9ac353fb36c9",
+        "name": "",
+        "spec": "rfc",
+        "sep": ",",
+        "hdrin": true,
+        "hdrout": "none",
+        "multi": "one",
+        "ret": "\\r\\n",
+        "temp": "",
+        "skip": "0",
+        "strings": true,
+        "include_empty_strings": "",
+        "include_null_values": "",
+        "x": 550,
+        "y": 480,
+        "wires": [
+            [
+                "eab6a3408c797a82"
+            ]
+        ]
+    },
+    {
+        "id": "eab6a3408c797a82",
+        "type": "function",
+        "z": "700f9ac353fb36c9",
+        "name": "a puntos de InfluxDB",
+        "func": "const r = msg.payload;\n\nconst num = (x) => Number(x);\nconst valores = {\n    ventas: num(r.ventas),\n    unidades: num(r.unidades),\n    ingresos_eur: num(r.ingresos_eur),\n    costes_eur: num(r.costes_eur),\n    margen_eur: num(r.margen_eur)\n};\n\n// Fecha del CSV (\"2026-01-01 00:00:00+00:00\") a milisegundos\nconst ts = new Date(String(r.Fecha).replace(\" \", \"T\")).getTime();\n\n// Si algún valor no es válido (cabecera, línea vacía...), se descarta la fila\nif (!r.Country || !Number.isFinite(ts) || Object.values(valores).some(v => !Number.isFinite(v))) {\n    node.warn(\"Fila descartada: \" + JSON.stringify(r));\n    return null;\n}\n\nmsg.payload = [{\n    measurement: \"ventas\",\n    tags: {\n        Country: String(r.Country),\n        Category: String(r.Category),\n        PromoFlag: String(r.PromoFlag)\n    },\n    fields: valores,\n    timestamp: ts\n}];\n\nlet n = (context.get(\"n\") || 0) + 1;\ncontext.set(\"n\", n);\nnode.status({ fill: \"green\", shape: \"dot\", text: n + \" filas enviadas\" });\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 780,
+        "y": 480,
+        "wires": [
+            [
+                "7d93892a1d20b231"
+            ]
+        ]
+    },
+    {
+        "id": "7d93892a1d20b231",
+        "type": "influxdb batch",
+        "z": "700f9ac353fb36c9",
+        "influxdb": "40db5b7632f3135d",
+        "precision": "",
+        "retentionPolicy": "",
+        "name": "Influx local",
+        "database": "database",
+        "precisionV18FluxV20": "ms",
+        "retentionPolicyV18Flux": "",
+        "org": "somorrostro",
+        "bucket": "ventas_diarias",
+        "x": 1070,
+        "y": 480,
+        "wires": []
+    },
+    {
+        "id": "f58ff5f0ec385cdc",
+        "type": "global-config",
+        "env": [],
+        "modules": {
+            "node-red-contrib-influxdb": "0.7.0"
+        }
+    }
+]

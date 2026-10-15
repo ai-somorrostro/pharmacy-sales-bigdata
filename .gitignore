@@ -223,7 +223,8 @@ __marimo__/
 # Datos
 Data/
 *.xlsx
-
+# Datos generados (no se versionan)
+*.csv
 # Notebooks y Node-RED
 .ipynb_checkpoints/
 node_modules/
