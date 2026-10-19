@@ -2,20 +2,20 @@
   "apiVersion": "dashboard.grafana.app/v2",
   "kind": "Dashboard",
   "metadata": {
-    "name": "adpg5c2",
+    "name": "adxjfmp",
     "namespace": "default",
-    "uid": "3bbac841-cca2-4578-8ea6-5f25ddb06df7",
-    "resourceVersion": "1791891410592006",
-    "generation": 5,
-    "creationTimestamp": "2026-10-13T11:32:45Z",
+    "uid": "be81249c-7487-42b1-a98a-6155091b29b7",
+    "resourceVersion": "1791964108392016",
+    "generation": 3,
+    "creationTimestamp": "2026-10-13T11:39:00Z",
     "labels": {
-      "grafana.app/deprecatedInternalID": "2285967822204928"
+      "grafana.app/deprecatedInternalID": "2287539897675776"
     },
     "annotations": {
       "grafana.app/createdBy": "user:cg13j1btf4dfkd",
       "grafana.app/saved-from-ui": "Grafana v13.2.3 (90ffed056f)",
       "grafana.app/updatedBy": "user:cg13j1btf4dfkd",
-      "grafana.app/updatedTimestamp": "2026-10-13T11:36:50Z"
+      "grafana.app/updatedTimestamp": "2026-10-14T07:48:28Z"
     }
   },
   "spec": {
@@ -41,6 +41,7 @@
       }
     ],
     "cursorSync": "Off",
+    "description": "Margen con o sin promociones",
     "editable": true,
     "elements": {
       "panel-1": {
@@ -62,10 +63,10 @@
                       "group": "influxdb",
                       "version": "v0",
                       "datasource": {
-                        "name": "ag13j6ggffa4gd"
+                        "name": "ds-influx"
                       },
                       "spec": {
-                        "query": "from(bucket: \"ventas_mensuales\")\r\n  |> range(start: 2024-01-01T00:00:00Z, stop: 2026-01-01T00:00:00Z)\r\n  |> filter(fn: (r) => r._measurement == \"ventas\" and r._field == \"ingresos_eur\")\r\n  |> group()\r\n  |> aggregateWindow(every: 1mo, fn: sum, createEmpty: false)"
+                        "query": "from(bucket: \"ventas_diarias\")\r\n  |> range(start: 2024-01-01T00:00:00Z, stop: 2026-01-01T00:00:00Z)\r\n  |> filter(fn: (r) => r._measurement == \"ventas\" and (r._field == \"margen_eur\" or r._field == \"ingresos_eur\"))\r\n  |> group(columns: [\"PromoFlag\", \"_field\"])\r\n  |> sum()\r\n  |> pivot(rowKey: [\"PromoFlag\"], columnKey: [\"_field\"], valueColumn: \"_value\")\r\n  |> map(fn: (r) => ({PromoFlag: r.PromoFlag, margen_pct: r.margen_eur / r.ingresos_eur * 100.0}))\r\n  |> group()"
                       }
                     },
                     "refId": "A",
@@ -79,21 +80,31 @@
           },
           "vizConfig": {
             "kind": "VizConfig",
-            "group": "timeseries",
+            "group": "barchart",
             "version": "13.2.3",
             "spec": {
               "options": {
+                "barRadius": 0,
+                "barWidth": 0.9,
+                "fullHighlight": false,
+                "groupWidth": 0.8,
                 "legend": {
                   "calcs": [],
                   "displayMode": "list",
-                  "placement": "bottom",
+                  "placement": "right",
                   "showLegend": true
                 },
+                "orientation": "auto",
+                "showValue": "never",
+                "stacking": "none",
                 "tooltip": {
                   "hideZeros": false,
                   "mode": "single",
                   "sort": "none"
-                }
+                },
+                "xField": "time",
+                "xTickLabelRotation": 0,
+                "xTickLabelSpacing": 100
               },
               "fieldConfig": {
                 "defaults": {
@@ -111,7 +122,8 @@
                     ]
                   },
                   "color": {
-                    "mode": "palette-classic"
+                    "mode": "fixed",
+                    "fixedColor": "#ad46ff"
                   },
                   "custom": {
                     "axisBorderShow": false,
@@ -119,29 +131,16 @@
                     "axisColorMode": "text",
                     "axisLabel": "",
                     "axisPlacement": "auto",
-                    "barAlignment": 0,
-                    "barWidthFactor": 0.6,
-                    "drawStyle": "line",
-                    "fillOpacity": 0,
-                    "gradientMode": "none",
+                    "fillOpacity": 100,
+                    "gradientMode": "hue",
                     "hideFrom": {
                       "legend": false,
                       "tooltip": false,
                       "viz": false
                     },
-                    "insertNulls": false,
-                    "lineInterpolation": "linear",
                     "lineWidth": 1,
-                    "pointSize": 5,
                     "scaleDistribution": {
                       "type": "linear"
-                    },
-                    "showPoints": "auto",
-                    "showValues": false,
-                    "spanNulls": false,
-                    "stacking": {
-                      "group": "A",
-                      "mode": "none"
                     },
                     "thresholdsStyle": {
                       "mode": "off"
@@ -173,10 +172,10 @@
                       "group": "influxdb",
                       "version": "v0",
                       "datasource": {
-                        "name": "ag13j6ggffa4gd"
+                        "name": "ds-influx"
                       },
                       "spec": {
-                        "query": "from(bucket: \"ventas_mensuales\")\r\n  |> range(start: 2024-01-01T00:00:00Z, stop: 2026-01-01T00:00:00Z)\r\n  |> filter(fn: (r) => r._measurement == \"ventas\" and r._field == \"ingresos_eur\")\r\n  |> group()\r\n  |> sum()"
+                        "query": "from(bucket: \"ventas_diarias\")\r\n  |> range(start: 2024-01-01T00:00:00Z, stop: 2026-01-01T00:00:00Z)\r\n  |> filter(fn: (r) => r._measurement == \"ventas\" and r.PromoFlag == \"Yes\" and (r._field == \"margen_eur\" or r._field == \"ingresos_eur\"))\r\n  |> group(columns: [\"_field\"])\r\n  |> sum()\r\n  |> pivot(rowKey: [\"_start\"], columnKey: [\"_field\"], valueColumn: \"_value\")\r\n  |> map(fn: (r) => ({_value: r.margen_eur / r.ingresos_eur * 100.0}))"
                       }
                     },
                     "refId": "A",
@@ -245,84 +244,6 @@
             }
           }
         }
-      },
-      "panel-3": {
-        "kind": "Panel",
-        "spec": {
-          "id": 3,
-          "title": "New panel",
-          "description": "",
-          "links": [],
-          "data": {
-            "kind": "QueryGroup",
-            "spec": {
-              "queries": [
-                {
-                  "kind": "PanelQuery",
-                  "spec": {
-                    "query": {
-                      "kind": "DataQuery",
-                      "group": "influxdb",
-                      "version": "v0",
-                      "datasource": {
-                        "name": "ag13j6ggffa4gd"
-                      },
-                      "spec": {
-                        "query": "from(bucket: \"ventas_mensuales\")\r\n  |> range(start: 2024-01-01T00:00:00Z, stop: 2026-01-01T00:00:00Z)\r\n  |> filter(fn: (r) => r._measurement == \"ventas\" and r._field == \"ingresos_eur\")\r\n  |> group()\r\n  |> aggregateWindow(every: 1mo, fn: sum, createEmpty: false)\r\n  |> keep(columns: [\"_time\", \"_value\"])"
-                      }
-                    },
-                    "refId": "A",
-                    "hidden": false
-                  }
-                }
-              ],
-              "transformations": [],
-              "queryOptions": {}
-            }
-          },
-          "vizConfig": {
-            "kind": "VizConfig",
-            "group": "table",
-            "version": "13.2.3",
-            "spec": {
-              "options": {
-                "cellHeight": "sm",
-                "showHeader": true
-              },
-              "fieldConfig": {
-                "defaults": {
-                  "thresholds": {
-                    "mode": "absolute",
-                    "steps": [
-                      {
-                        "value": 0,
-                        "color": "green"
-                      },
-                      {
-                        "value": 80,
-                        "color": "red"
-                      }
-                    ]
-                  },
-                  "color": {
-                    "mode": "thresholds"
-                  },
-                  "custom": {
-                    "align": "auto",
-                    "cellOptions": {
-                      "type": "auto"
-                    },
-                    "footer": {
-                      "reducers": []
-                    },
-                    "inspect": false
-                  }
-                },
-                "overrides": []
-              }
-            }
-          }
-        }
       }
     },
     "layout": {
@@ -354,19 +275,6 @@
                 "name": "panel-2"
               }
             }
-          },
-          {
-            "kind": "GridLayoutItem",
-            "spec": {
-              "x": 0,
-              "y": 8,
-              "width": 12,
-              "height": 8,
-              "element": {
-                "kind": "ElementReference",
-                "name": "panel-3"
-              }
-            }
           }
         ]
       }
@@ -377,8 +285,8 @@
     "tags": [],
     "timeSettings": {
       "timezone": "browser",
-      "from": "2026-10-13T02:32:30.468Z",
-      "to": "2026-10-13T14:32:30.468Z",
+      "from": "2024-02-01T00:00:00.000Z",
+      "to": "2026-01-01T00:00:00.000Z",
       "autoRefresh": "",
       "autoRefreshIntervals": [
         "5s",
@@ -395,7 +303,7 @@
       "hideTimepicker": false,
       "fiscalYearStartMonth": 0
     },
-    "title": "Evolución mensual",
+    "title": "Promociones",
     "variables": [],
     "preferences": {
       "layout": {

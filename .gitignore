@@ -228,3 +228,19 @@ Data/
 # Notebooks y Node-RED
 .ipynb_checkpoints/
 node_modules/
+
+# Secretos y configuración local
+.env
+
+# Datos generados (no se versionan)
+*.csv
+
+# Credenciales de Node-RED y tokens sueltos
+*_cred.json
+*token*.txt
+
+# Basura de Python/Jupyter
+.ipynb_checkpoints/
+__pycache__/.venv-wsl/
+BDA/grafana/dashboards-backup-20261016-131236/
+grafana-data-backup.tar.gz
