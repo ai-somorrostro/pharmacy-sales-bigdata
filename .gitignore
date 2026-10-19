@@ -241,6 +241,7 @@ node_modules/
 
 # Basura de Python/Jupyter
 .ipynb_checkpoints/
-__pycache__/.venv-wsl/
+__pycache__/
+.venv-wsl/
 BDA/grafana/dashboards-backup-20261016-131236/
 grafana-data-backup.tar.gz
