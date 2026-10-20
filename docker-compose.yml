@@ -68,26 +68,7 @@ services:
       # CSV generados con el notebook; en los flujos se leen desde /csv
       - ${DATA_DIR:-./BDA}:/csv:ro
 
-  
-  influxdb-mcp:
-    image: node:${NODE_VERSION:?define NODE_VERSION en .env}
-    container_name: influxdb-mcp
-    restart: unless-stopped
-    depends_on:
-      influxdb:
-        condition: service_healthy
-    command:
-      - npx
-      - -y
-      - influxdb-mcp-server@${MCP_VERSION:?define MCP_VERSION en .env}
-      - --http
-      - "8080"
-    environment:
-      INFLUXDB_URL: http://influxdb:8086
-      INFLUXDB_TOKEN: ${INFLUX_READ_TOKEN}
-      INFLUXDB_ORG: ${INFLUX_ORG}
-    ports:
-      - "127.0.0.1:8080:8080"
+
 
   mcp-grafana:
     image: grafana/mcp-grafana:${GRAFANA_MCP_VERSION:?define GRAFANA_MCP_VERSION en .env}
