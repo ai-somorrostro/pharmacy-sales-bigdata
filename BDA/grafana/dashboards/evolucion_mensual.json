@@ -4,18 +4,21 @@
   "metadata": {
     "name": "adpg5c2",
     "namespace": "default",
-    "uid": "3bbac841-cca2-4578-8ea6-5f25ddb06df7",
-    "resourceVersion": "1791891410592006",
-    "generation": 5,
-    "creationTimestamp": "2026-10-13T11:32:45Z",
+    "uid": "d41c9396-dbbf-40e6-90fd-42d92f062e67",
+    "resourceVersion": "1792407283285980",
+    "generation": 1,
+    "creationTimestamp": "2026-10-19T10:54:43Z",
     "labels": {
-      "grafana.app/deprecatedInternalID": "2285967822204928"
+      "grafana.app/deprecatedInternalID": "4450722737623040"
     },
     "annotations": {
-      "grafana.app/createdBy": "user:cg13j1btf4dfkd",
-      "grafana.app/saved-from-ui": "Grafana v13.2.3 (90ffed056f)",
-      "grafana.app/updatedBy": "user:cg13j1btf4dfkd",
-      "grafana.app/updatedTimestamp": "2026-10-13T11:36:50Z"
+      "grafana.app/createdBy": "access-policy:service",
+      "grafana.app/managedBy": "classic-file-provisioning",
+      "grafana.app/managerId": "dashboards-generales",
+      "grafana.app/sourceChecksum": "c5c90b53d3708a18a8099e9a62673351",
+      "grafana.app/sourcePath": "/var/lib/grafana/dashboards/evolucion_mensual.json",
+      "grafana.app/sourceTimestamp": "1792406460000",
+      "grafana.app/folder": ""
     }
   },
   "spec": {
@@ -23,20 +26,20 @@
       {
         "kind": "AnnotationQuery",
         "spec": {
-          "query": {
-            "kind": "DataQuery",
-            "group": "grafana",
-            "version": "v0",
-            "datasource": {
-              "name": "-- Grafana --"
-            },
-            "spec": {}
-          },
+          "builtIn": true,
           "enable": true,
           "hide": true,
           "iconColor": "rgba(0, 211, 255, 1)",
           "name": "Annotations & Alerts",
-          "builtIn": true
+          "query": {
+            "datasource": {
+              "name": "-- Grafana --"
+            },
+            "group": "grafana",
+            "kind": "DataQuery",
+            "spec": {},
+            "version": "v0"
+          }
         }
       }
     ],
@@ -46,10 +49,6 @@
       "panel-1": {
         "kind": "Panel",
         "spec": {
-          "id": 1,
-          "title": "New panel",
-          "description": "",
-          "links": [],
           "data": {
             "kind": "QueryGroup",
             "spec": {
@@ -57,59 +56,36 @@
                 {
                   "kind": "PanelQuery",
                   "spec": {
+                    "hidden": false,
                     "query": {
-                      "kind": "DataQuery",
-                      "group": "influxdb",
-                      "version": "v0",
                       "datasource": {
                         "name": "ds-influx"
                       },
+                      "group": "influxdb",
+                      "kind": "DataQuery",
                       "spec": {
                         "query": "from(bucket: \"ventas_mensuales\")\r\n  |> range(start: 2024-01-01T00:00:00Z, stop: 2026-01-01T00:00:00Z)\r\n  |> filter(fn: (r) => r._measurement == \"ventas\" and r._field == \"ingresos_eur\")\r\n  |> group()\r\n  |> aggregateWindow(every: 1mo, fn: sum, createEmpty: false)"
-                      }
+                      },
+                      "version": "v0"
                     },
-                    "refId": "A",
-                    "hidden": false
+                    "refId": "A"
                   }
                 }
               ],
-              "transformations": [],
-              "queryOptions": {}
+              "queryOptions": {},
+              "transformations": []
             }
           },
+          "description": "",
+          "id": 1,
+          "links": [],
+          "title": "Ingreso mensual 2024-2025",
           "vizConfig": {
-            "kind": "VizConfig",
             "group": "timeseries",
-            "version": "13.2.3",
+            "kind": "VizConfig",
             "spec": {
-              "options": {
-                "legend": {
-                  "calcs": [],
-                  "displayMode": "list",
-                  "placement": "bottom",
-                  "showLegend": true
-                },
-                "tooltip": {
-                  "hideZeros": false,
-                  "mode": "single",
-                  "sort": "none"
-                }
-              },
               "fieldConfig": {
                 "defaults": {
-                  "thresholds": {
-                    "mode": "absolute",
-                    "steps": [
-                      {
-                        "value": 0,
-                        "color": "green"
-                      },
-                      {
-                        "value": 80,
-                        "color": "red"
-                      }
-                    ]
-                  },
                   "color": {
                     "mode": "palette-classic"
                   },
@@ -146,21 +122,44 @@
                     "thresholdsStyle": {
                       "mode": "off"
                     }
+                  },
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "green",
+                        "value": 0
+                      },
+                      {
+                        "color": "red",
+                        "value": 80
+                      }
+                    ]
                   }
                 },
                 "overrides": []
+              },
+              "options": {
+                "legend": {
+                  "calcs": [],
+                  "displayMode": "list",
+                  "placement": "bottom",
+                  "showLegend": true
+                },
+                "tooltip": {
+                  "hideZeros": false,
+                  "mode": "single",
+                  "sort": "none"
+                }
               }
-            }
+            },
+            "version": "13.2.3"
           }
         }
       },
       "panel-2": {
         "kind": "Panel",
         "spec": {
-          "id": 2,
-          "title": "New panel",
-          "description": "",
-          "links": [],
           "data": {
             "kind": "QueryGroup",
             "spec": {
@@ -168,31 +167,55 @@
                 {
                   "kind": "PanelQuery",
                   "spec": {
+                    "hidden": false,
                     "query": {
-                      "kind": "DataQuery",
-                      "group": "influxdb",
-                      "version": "v0",
                       "datasource": {
                         "name": "ds-influx"
                       },
+                      "group": "influxdb",
+                      "kind": "DataQuery",
                       "spec": {
                         "query": "from(bucket: \"ventas_mensuales\")\r\n  |> range(start: 2024-01-01T00:00:00Z, stop: 2026-01-01T00:00:00Z)\r\n  |> filter(fn: (r) => r._measurement == \"ventas\" and r._field == \"ingresos_eur\")\r\n  |> group()\r\n  |> sum()"
-                      }
+                      },
+                      "version": "v0"
                     },
-                    "refId": "A",
-                    "hidden": false
+                    "refId": "A"
                   }
                 }
               ],
-              "transformations": [],
-              "queryOptions": {}
+              "queryOptions": {},
+              "transformations": []
             }
           },
+          "description": "",
+          "id": 2,
+          "links": [],
+          "title": "Ingreso total 2024-2025",
           "vizConfig": {
-            "kind": "VizConfig",
             "group": "gauge",
-            "version": "13.2.3",
+            "kind": "VizConfig",
             "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "mode": "thresholds"
+                  },
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "green",
+                        "value": 0
+                      },
+                      {
+                        "color": "red",
+                        "value": 80
+                      }
+                    ]
+                  }
+                },
+                "overrides": []
+              },
               "options": {
                 "barShape": "flat",
                 "barWidthFactor": 0.3,
@@ -220,39 +243,15 @@
                 "sizing": "auto",
                 "sparkline": false,
                 "textMode": "auto"
-              },
-              "fieldConfig": {
-                "defaults": {
-                  "thresholds": {
-                    "mode": "absolute",
-                    "steps": [
-                      {
-                        "value": 0,
-                        "color": "green"
-                      },
-                      {
-                        "value": 80,
-                        "color": "red"
-                      }
-                    ]
-                  },
-                  "color": {
-                    "mode": "thresholds"
-                  }
-                },
-                "overrides": []
               }
-            }
+            },
+            "version": "13.2.3"
           }
         }
       },
       "panel-3": {
         "kind": "Panel",
         "spec": {
-          "id": 3,
-          "title": "New panel",
-          "description": "",
-          "links": [],
           "data": {
             "kind": "QueryGroup",
             "spec": {
@@ -260,50 +259,36 @@
                 {
                   "kind": "PanelQuery",
                   "spec": {
+                    "hidden": false,
                     "query": {
-                      "kind": "DataQuery",
-                      "group": "influxdb",
-                      "version": "v0",
                       "datasource": {
                         "name": "ds-influx"
                       },
+                      "group": "influxdb",
+                      "kind": "DataQuery",
                       "spec": {
                         "query": "from(bucket: \"ventas_mensuales\")\r\n  |> range(start: 2024-01-01T00:00:00Z, stop: 2026-01-01T00:00:00Z)\r\n  |> filter(fn: (r) => r._measurement == \"ventas\" and r._field == \"ingresos_eur\")\r\n  |> group()\r\n  |> aggregateWindow(every: 1mo, fn: sum, createEmpty: false)\r\n  |> keep(columns: [\"_time\", \"_value\"])"
-                      }
+                      },
+                      "version": "v0"
                     },
-                    "refId": "A",
-                    "hidden": false
+                    "refId": "A"
                   }
                 }
               ],
-              "transformations": [],
-              "queryOptions": {}
+              "queryOptions": {},
+              "transformations": []
             }
           },
+          "description": "",
+          "id": 3,
+          "links": [],
+          "title": "Tabla de ingresos mensuales 2024-2025",
           "vizConfig": {
-            "kind": "VizConfig",
             "group": "table",
-            "version": "13.2.3",
+            "kind": "VizConfig",
             "spec": {
-              "options": {
-                "cellHeight": "sm",
-                "showHeader": true
-              },
               "fieldConfig": {
                 "defaults": {
-                  "thresholds": {
-                    "mode": "absolute",
-                    "steps": [
-                      {
-                        "value": 0,
-                        "color": "green"
-                      },
-                      {
-                        "value": 80,
-                        "color": "red"
-                      }
-                    ]
-                  },
                   "color": {
                     "mode": "thresholds"
                   },
@@ -316,11 +301,29 @@
                       "reducers": []
                     },
                     "inspect": false
+                  },
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "green",
+                        "value": 0
+                      },
+                      {
+                        "color": "red",
+                        "value": 80
+                      }
+                    ]
                   }
                 },
                 "overrides": []
+              },
+              "options": {
+                "cellHeight": "sm",
+                "showHeader": true
               }
-            }
+            },
+            "version": "13.2.3"
           }
         }
       }
@@ -332,40 +335,40 @@
           {
             "kind": "GridLayoutItem",
             "spec": {
-              "x": 0,
-              "y": 0,
-              "width": 12,
-              "height": 8,
               "element": {
                 "kind": "ElementReference",
                 "name": "panel-1"
-              }
+              },
+              "height": 8,
+              "width": 12,
+              "x": 0,
+              "y": 0
             }
           },
           {
             "kind": "GridLayoutItem",
             "spec": {
-              "x": 12,
-              "y": 0,
-              "width": 12,
-              "height": 8,
               "element": {
                 "kind": "ElementReference",
                 "name": "panel-2"
-              }
+              },
+              "height": 8,
+              "width": 12,
+              "x": 12,
+              "y": 0
             }
           },
           {
             "kind": "GridLayoutItem",
             "spec": {
-              "x": 0,
-              "y": 8,
-              "width": 12,
-              "height": 8,
               "element": {
                 "kind": "ElementReference",
                 "name": "panel-3"
-              }
+              },
+              "height": 8,
+              "width": 12,
+              "x": 0,
+              "y": 8
             }
           }
         ]
@@ -373,12 +376,17 @@
     },
     "links": [],
     "liveNow": false,
+    "preferences": {
+      "layout": {
+        "kind": "GridLayout",
+        "spec": {
+          "items": []
+        }
+      }
+    },
     "preload": false,
     "tags": [],
     "timeSettings": {
-      "timezone": "browser",
-      "from": "2026-10-13T02:32:30.468Z",
-      "to": "2026-10-13T14:32:30.468Z",
       "autoRefresh": "",
       "autoRefreshIntervals": [
         "5s",
@@ -392,18 +400,13 @@
         "2h",
         "1d"
       ],
+      "fiscalYearStartMonth": 0,
+      "from": "2026-10-13T02:32:30.468Z",
       "hideTimepicker": false,
-      "fiscalYearStartMonth": 0
+      "timezone": "browser",
+      "to": "2026-10-13T14:32:30.468Z"
     },
     "title": "Evolución mensual",
-    "variables": [],
-    "preferences": {
-      "layout": {
-        "kind": "GridLayout",
-        "spec": {
-          "items": []
-        }
-      }
-    }
+    "variables": []
   }
 }

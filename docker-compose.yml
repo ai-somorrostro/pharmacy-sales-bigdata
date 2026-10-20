@@ -6,7 +6,7 @@ services:
     container_name: influxdb
     restart: unless-stopped
     ports:
-      - "127.0.0.1:8086:8086"
+      - "127.0.0.1:8087:8086"
     environment:
       DOCKER_INFLUXDB_INIT_MODE: setup
       DOCKER_INFLUXDB_INIT_USERNAME: ${INFLUX_ADMIN_USER}
@@ -56,7 +56,7 @@ services:
       influxdb:
         condition: service_healthy
     ports:
-      - "127.0.0.1:1880:1880"
+      - "127.0.0.1:1881:1880"
     environment:
       INFLUX_URL: http://influxdb:8086
       INFLUX_ORG: ${INFLUX_ORG}
@@ -68,26 +68,26 @@ services:
       # CSV generados con el notebook; en los flujos se leen desde /csv
       - ${DATA_DIR:-./BDA}:/csv:ro
 
-  
-  influxdb-mcp:
-    image: node:${NODE_VERSION:?define NODE_VERSION en .env}
-    container_name: influxdb-mcp
+
+
+  mcp-grafana:
+    image: grafana/mcp-grafana:${GRAFANA_MCP_VERSION:?define GRAFANA_MCP_VERSION en .env}
+    container_name: mcp-grafana
     restart: unless-stopped
     depends_on:
-      influxdb:
-        condition: service_healthy
-    command:
-      - npx
-      - -y
-      - influxdb-mcp-server@${MCP_VERSION:?define MCP_VERSION en .env}
-      - --http
-      - "8080"
+      - grafana
     environment:
-      INFLUXDB_URL: http://influxdb:8086
-      INFLUXDB_TOKEN: ${INFLUX_READ_TOKEN}
-      INFLUXDB_ORG: ${INFLUX_ORG}
+      GRAFANA_URL: http://grafana:3000
+      GRAFANA_SERVICE_ACCOUNT_TOKEN: ${GRAFANA_MCP_TOKEN}
+      MCP_GRAFANA_SERVER_TOKEN: ${MCP_GRAFANA_SERVER_TOKEN:?define MCP_GRAFANA_SERVER_TOKEN en .env}
+    command:
+      - --transport
+      - streamable-http
+      - --address
+      - ":8000"
+      - --disable-write
     ports:
-      - "127.0.0.1:8080:8080"
+      - "127.0.0.1:${GRAFANA_MCP_PORT:-8000}:8000"
 
 
 volumes:

@@ -4,18 +4,21 @@
   "metadata": {
     "name": "ad86jm9",
     "namespace": "default",
-    "uid": "a5ef2587-1880-441c-84ea-a2969f45a894",
-    "resourceVersion": "1791891013793997",
-    "generation": 5,
-    "creationTimestamp": "2026-10-13T11:08:00Z",
+    "uid": "b9426f95-b590-47fc-b983-bcab3d80b18a",
+    "resourceVersion": "1792407283321988",
+    "generation": 1,
+    "creationTimestamp": "2026-10-19T10:54:43Z",
     "labels": {
-      "grafana.app/deprecatedInternalID": "2279740534861824"
+      "grafana.app/deprecatedInternalID": "4450722892812288"
     },
     "annotations": {
-      "grafana.app/createdBy": "user:cg13j1btf4dfkd",
-      "grafana.app/saved-from-ui": "Grafana v13.2.3 (90ffed056f)",
-      "grafana.app/updatedBy": "user:cg13j1btf4dfkd",
-      "grafana.app/updatedTimestamp": "2026-10-13T11:30:13Z"
+      "grafana.app/createdBy": "access-policy:service",
+      "grafana.app/managedBy": "classic-file-provisioning",
+      "grafana.app/managerId": "dashboards-generales",
+      "grafana.app/sourceChecksum": "fb53a87c39383c359e7f04b02b07bfad",
+      "grafana.app/sourcePath": "/var/lib/grafana/dashboards/paises_y_categorias.json",
+      "grafana.app/sourceTimestamp": "1792406460000",
+      "grafana.app/folder": ""
     }
   },
   "spec": {
@@ -23,20 +26,20 @@
       {
         "kind": "AnnotationQuery",
         "spec": {
-          "query": {
-            "kind": "DataQuery",
-            "group": "grafana",
-            "version": "v0",
-            "datasource": {
-              "name": "-- Grafana --"
-            },
-            "spec": {}
-          },
+          "builtIn": true,
           "enable": true,
           "hide": true,
           "iconColor": "rgba(0, 211, 255, 1)",
           "name": "Annotations & Alerts",
-          "builtIn": true
+          "query": {
+            "datasource": {
+              "name": "-- Grafana --"
+            },
+            "group": "grafana",
+            "kind": "DataQuery",
+            "spec": {},
+            "version": "v0"
+          }
         }
       }
     ],
@@ -46,10 +49,6 @@
       "panel-1": {
         "kind": "Panel",
         "spec": {
-          "id": 1,
-          "title": "New panel",
-          "description": "",
-          "links": [],
           "data": {
             "kind": "QueryGroup",
             "spec": {
@@ -57,34 +56,79 @@
                 {
                   "kind": "PanelQuery",
                   "spec": {
+                    "hidden": false,
                     "query": {
-                      "kind": "DataQuery",
-                      "group": "influxdb",
-                      "version": "v0",
                       "datasource": {
                         "name": "ds-influx"
                       },
+                      "group": "influxdb",
+                      "kind": "DataQuery",
                       "spec": {
                         "query": "from(bucket: \"ventas_diarias\")\r\n  |> range(start: 2024-01-01T00:00:00Z, stop: 2026-01-01T00:00:00Z)\r\n  |> filter(fn: (r) => r._measurement == \"ventas\" and r._field == \"ingresos_eur\")\r\n  |> group(columns: [\"Country\"])\r\n  |> sum()\r\n  |> keep(columns: [\"Country\", \"_value\"])\r\n  |> group()"
-                      }
+                      },
+                      "version": "v0"
                     },
-                    "refId": "A",
-                    "hidden": false
+                    "refId": "A"
                   }
                 }
               ],
-              "transformations": [],
-              "queryOptions": {}
+              "queryOptions": {},
+              "transformations": []
             }
           },
+          "description": "",
+          "id": 1,
+          "links": [],
+          "title": "Ingresos totales por país",
           "vizConfig": {
-            "kind": "VizConfig",
             "group": "barchart",
-            "version": "13.2.3",
+            "kind": "VizConfig",
             "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "mode": "palette-classic"
+                  },
+                  "custom": {
+                    "axisBorderShow": false,
+                    "axisCenteredZero": false,
+                    "axisColorMode": "text",
+                    "axisLabel": "Ingresos",
+                    "axisPlacement": "auto",
+                    "fillOpacity": 100,
+                    "gradientMode": "none",
+                    "hideFrom": {
+                      "legend": false,
+                      "tooltip": false,
+                      "viz": false
+                    },
+                    "lineWidth": 0,
+                    "scaleDistribution": {
+                      "type": "linear"
+                    },
+                    "thresholdsStyle": {
+                      "mode": "off"
+                    }
+                  },
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "green",
+                        "value": 0
+                      },
+                      {
+                        "color": "red",
+                        "value": 80
+                      }
+                    ]
+                  }
+                },
+                "overrides": []
+              },
               "options": {
-                "barRadius": 0,
-                "barWidth": 0.9,
+                "barRadius": 0.05,
+                "barWidth": 0.95,
                 "fullHighlight": false,
                 "groupWidth": 0.8,
                 "legend": {
@@ -96,6 +140,7 @@
                 "orientation": "auto",
                 "showValue": "never",
                 "stacking": "none",
+                "text": {},
                 "tooltip": {
                   "hideZeros": false,
                   "mode": "single",
@@ -103,62 +148,16 @@
                 },
                 "xField": "time",
                 "xTickLabelRotation": 0,
-                "xTickLabelSpacing": 100
-              },
-              "fieldConfig": {
-                "defaults": {
-                  "thresholds": {
-                    "mode": "absolute",
-                    "steps": [
-                      {
-                        "value": 0,
-                        "color": "green"
-                      },
-                      {
-                        "value": 80,
-                        "color": "red"
-                      }
-                    ]
-                  },
-                  "color": {
-                    "mode": "fixed",
-                    "fixedColor": "#ad46ff"
-                  },
-                  "custom": {
-                    "axisBorderShow": false,
-                    "axisCenteredZero": false,
-                    "axisColorMode": "text",
-                    "axisLabel": "",
-                    "axisPlacement": "auto",
-                    "fillOpacity": 100,
-                    "gradientMode": "hue",
-                    "hideFrom": {
-                      "legend": false,
-                      "tooltip": false,
-                      "viz": false
-                    },
-                    "lineWidth": 1,
-                    "scaleDistribution": {
-                      "type": "linear"
-                    },
-                    "thresholdsStyle": {
-                      "mode": "off"
-                    }
-                  }
-                },
-                "overrides": []
+                "xTickLabelSpacing": 0
               }
-            }
+            },
+            "version": "13.2.3"
           }
         }
       },
       "panel-2": {
         "kind": "Panel",
         "spec": {
-          "id": 2,
-          "title": "New panel",
-          "description": "",
-          "links": [],
           "data": {
             "kind": "QueryGroup",
             "spec": {
@@ -166,31 +165,50 @@
                 {
                   "kind": "PanelQuery",
                   "spec": {
+                    "hidden": false,
                     "query": {
-                      "kind": "DataQuery",
-                      "group": "influxdb",
-                      "version": "v0",
                       "datasource": {
                         "name": "ds-influx"
                       },
+                      "group": "influxdb",
+                      "kind": "DataQuery",
                       "spec": {
                         "query": "from(bucket: \"ventas_diarias\")\r\n  |> range(start: 2024-01-01T00:00:00Z, stop: 2026-01-01T00:00:00Z)\r\n  |> filter(fn: (r) => r._measurement == \"ventas\" and r._field == \"ingresos_eur\")\r\n  |> group(columns: [\"Category\"])\r\n  |> sum()\r\n  |> keep(columns: [\"Category\", \"_value\"])\r\n  |> group()"
-                      }
+                      },
+                      "version": "v0"
                     },
-                    "refId": "A",
-                    "hidden": false
+                    "refId": "A"
                   }
                 }
               ],
-              "transformations": [],
-              "queryOptions": {}
+              "queryOptions": {},
+              "transformations": []
             }
           },
+          "description": "",
+          "id": 2,
+          "links": [],
+          "title": "Porcentaje de ingresos por categoria",
           "vizConfig": {
-            "kind": "VizConfig",
             "group": "piechart",
-            "version": "13.2.3",
+            "kind": "VizConfig",
             "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "fixedColor": "#73BF69",
+                    "mode": "palette-classic"
+                  },
+                  "custom": {
+                    "hideFrom": {
+                      "legend": false,
+                      "tooltip": false,
+                      "viz": false
+                    }
+                  }
+                },
+                "overrides": []
+              },
               "options": {
                 "displayLabels": [
                   "percent"
@@ -212,34 +230,15 @@
                   "mode": "single",
                   "sort": "none"
                 }
-              },
-              "fieldConfig": {
-                "defaults": {
-                  "color": {
-                    "mode": "palette-classic",
-                    "fixedColor": "#73BF69"
-                  },
-                  "custom": {
-                    "hideFrom": {
-                      "legend": false,
-                      "tooltip": false,
-                      "viz": false
-                    }
-                  }
-                },
-                "overrides": []
               }
-            }
+            },
+            "version": "13.2.3"
           }
         }
       },
       "panel-3": {
         "kind": "Panel",
         "spec": {
-          "id": 3,
-          "title": "New panel",
-          "description": "",
-          "links": [],
           "data": {
             "kind": "QueryGroup",
             "spec": {
@@ -247,31 +246,57 @@
                 {
                   "kind": "PanelQuery",
                   "spec": {
+                    "hidden": false,
                     "query": {
-                      "kind": "DataQuery",
-                      "group": "influxdb",
-                      "version": "v0",
                       "datasource": {
                         "name": "ds-influx"
                       },
+                      "group": "influxdb",
+                      "kind": "DataQuery",
                       "spec": {
                         "query": "from(bucket: \"ventas_diarias\")\r\n  |> range(start: 2024-01-01T00:00:00Z, stop: 2026-01-01T00:00:00Z)\r\n  |> filter(fn: (r) => r._measurement == \"ventas\" and (r._field == \"margen_eur\" or r._field == \"ingresos_eur\"))\r\n  |> group(columns: [\"Category\", \"_field\"])\r\n  |> sum()\r\n  |> pivot(rowKey: [\"Category\"], columnKey: [\"_field\"], valueColumn: \"_value\")\r\n  |> map(fn: (r) => ({Category: r.Category, margen_pct: r.margen_eur / r.ingresos_eur * 100.0}))\r\n  |> group()"
-                      }
+                      },
+                      "version": "v0"
                     },
-                    "refId": "A",
-                    "hidden": false
+                    "refId": "A"
                   }
                 }
               ],
-              "transformations": [],
-              "queryOptions": {}
+              "queryOptions": {},
+              "transformations": []
             }
           },
+          "description": "",
+          "id": 3,
+          "links": [],
+          "title": "Beneficio por categoria",
           "vizConfig": {
-            "kind": "VizConfig",
             "group": "bargauge",
-            "version": "13.2.3",
+            "kind": "VizConfig",
             "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "mode": "continuous-GrYlRd"
+                  },
+                  "max": 100,
+                  "min": 0,
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "green",
+                        "value": 0
+                      },
+                      {
+                        "color": "red",
+                        "value": 80
+                      }
+                    ]
+                  }
+                },
+                "overrides": []
+              },
               "options": {
                 "displayMode": "basic",
                 "legend": {
@@ -293,29 +318,9 @@
                 "showUnfilled": true,
                 "sizing": "auto",
                 "valueMode": "color"
-              },
-              "fieldConfig": {
-                "defaults": {
-                  "thresholds": {
-                    "mode": "absolute",
-                    "steps": [
-                      {
-                        "value": 0,
-                        "color": "green"
-                      },
-                      {
-                        "value": 80,
-                        "color": "red"
-                      }
-                    ]
-                  },
-                  "color": {
-                    "mode": "continuous-GrYlRd"
-                  }
-                },
-                "overrides": []
               }
-            }
+            },
+            "version": "13.2.3"
           }
         }
       }
@@ -327,40 +332,40 @@
           {
             "kind": "GridLayoutItem",
             "spec": {
-              "x": 0,
-              "y": 0,
-              "width": 12,
-              "height": 8,
               "element": {
                 "kind": "ElementReference",
                 "name": "panel-1"
-              }
+              },
+              "height": 8,
+              "width": 12,
+              "x": 0,
+              "y": 0
             }
           },
           {
             "kind": "GridLayoutItem",
             "spec": {
-              "x": 12,
-              "y": 0,
-              "width": 12,
-              "height": 8,
               "element": {
                 "kind": "ElementReference",
                 "name": "panel-2"
-              }
+              },
+              "height": 8,
+              "width": 12,
+              "x": 12,
+              "y": 0
             }
           },
           {
             "kind": "GridLayoutItem",
             "spec": {
-              "x": 0,
-              "y": 8,
-              "width": 12,
-              "height": 8,
               "element": {
                 "kind": "ElementReference",
                 "name": "panel-3"
-              }
+              },
+              "height": 8,
+              "width": 12,
+              "x": 0,
+              "y": 8
             }
           }
         ]
@@ -368,12 +373,17 @@
     },
     "links": [],
     "liveNow": false,
+    "preferences": {
+      "layout": {
+        "kind": "GridLayout",
+        "spec": {
+          "items": []
+        }
+      }
+    },
     "preload": false,
     "tags": [],
     "timeSettings": {
-      "timezone": "browser",
-      "from": "now-6h",
-      "to": "now",
       "autoRefresh": "",
       "autoRefreshIntervals": [
         "5s",
@@ -387,18 +397,13 @@
         "2h",
         "1d"
       ],
+      "fiscalYearStartMonth": 0,
+      "from": "now-6h",
       "hideTimepicker": false,
-      "fiscalYearStartMonth": 0
+      "timezone": "browser",
+      "to": "now"
     },
     "title": "Paises y categorias",
-    "variables": [],
-    "preferences": {
-      "layout": {
-        "kind": "GridLayout",
-        "spec": {
-          "items": []
-        }
-      }
-    }
+    "variables": []
   }
 }
