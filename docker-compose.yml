@@ -6,7 +6,7 @@ services:
     container_name: influxdb
     restart: unless-stopped
     ports:
-      - "127.0.0.1:8086:8086"
+      - "127.0.0.1:8087:8086"
     environment:
       DOCKER_INFLUXDB_INIT_MODE: setup
       DOCKER_INFLUXDB_INIT_USERNAME: ${INFLUX_ADMIN_USER}
@@ -56,7 +56,7 @@ services:
       influxdb:
         condition: service_healthy
     ports:
-      - "127.0.0.1:1880:1880"
+      - "127.0.0.1:1881:1880"
     environment:
       INFLUX_URL: http://influxdb:8086
       INFLUX_ORG: ${INFLUX_ORG}
