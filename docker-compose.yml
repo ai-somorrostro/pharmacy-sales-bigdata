@@ -89,6 +89,24 @@ services:
     ports:
       - "127.0.0.1:8080:8080"
 
+  mcp-grafana:
+    image: grafana/mcp-grafana:${GRAFANA_MCP_VERSION:?define GRAFANA_MCP_VERSION en .env}
+    container_name: mcp-grafana
+    restart: unless-stopped
+    depends_on:
+      - grafana
+    environment:
+      GRAFANA_URL: http://grafana:3000
+      GRAFANA_SERVICE_ACCOUNT_TOKEN: ${GRAFANA_MCP_TOKEN}
+    command:
+      - --transport
+      - streamable-http
+      - --address
+      - ":8000"
+      - --disable-write
+    ports:
+      - "127.0.0.1:${GRAFANA_MCP_PORT:-8000}:8000"
+
 
 volumes:
   influxdb-data:
