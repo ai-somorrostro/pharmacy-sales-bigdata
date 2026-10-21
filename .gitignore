@@ -245,3 +245,4 @@ __pycache__/
 .venv-wsl/
 BDA/grafana/dashboards-backup-20261016-131236/
 grafana-data-backup.tar.gz
+.env
