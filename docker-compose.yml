@@ -15,9 +15,11 @@ services:
       DOCKER_INFLUXDB_INIT_BUCKET: ${INFLUX_BUCKET_DAILY}
       DOCKER_INFLUXDB_INIT_RETENTION: "0"
       DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: ${INFLUX_ADMIN_TOKEN}
+      INFLUX_BUCKET_MONTHLY: ${INFLUX_BUCKET_MONTHLY}
     volumes:
       - influxdb-data:/var/lib/influxdb2
       - influxdb-config:/etc/influxdb2
+      - ./BDA/influxdb/init-buckets.sh:/docker-entrypoint-initdb.d/init-buckets.sh:ro
     healthcheck:
       test: ["CMD", "influx", "ping"]
       interval: 10s

@@ -71,10 +71,11 @@ case "$ACTION" in
         echo "🚀 Levantando los contenedores del reto..."
         docker compose up -d --build
         echo "✅ Servicios levantados correctamente. Puedes acceder a:"
-        echo "   - InfluxDB: http://localhost:8086"
+        echo "   - InfluxDB: http://localhost:8087"
         echo "   - Grafana:  http://localhost:3000"
-        echo "   - Node-RED: http://localhost:1880"
-        echo "   - MCP:      http://localhost:8080"
+        echo "   - Node-RED: http://localhost:1881"
+        echo "   - MCP InfluxDB: http://localhost:8001"
+        echo "   - MCP Grafana: http://localhost:8000"
         echo
         docker compose ps
         ;;
