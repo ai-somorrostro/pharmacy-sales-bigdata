@@ -4,18 +4,21 @@
   "metadata": {
     "name": "adxjfmp",
     "namespace": "default",
-    "uid": "be81249c-7487-42b1-a98a-6155091b29b7",
-    "resourceVersion": "1791964108392016",
-    "generation": 3,
-    "creationTimestamp": "2026-10-13T11:39:00Z",
+    "uid": "a87398d2-801e-41e0-ab75-def93e92eb0f",
+    "resourceVersion": "1792407283349990",
+    "generation": 1,
+    "creationTimestamp": "2026-10-19T10:54:43Z",
     "labels": {
-      "grafana.app/deprecatedInternalID": "2287539897675776"
+      "grafana.app/deprecatedInternalID": "4450723014447104"
     },
     "annotations": {
-      "grafana.app/createdBy": "user:cg13j1btf4dfkd",
-      "grafana.app/saved-from-ui": "Grafana v13.2.3 (90ffed056f)",
-      "grafana.app/updatedBy": "user:cg13j1btf4dfkd",
-      "grafana.app/updatedTimestamp": "2026-10-14T07:48:28Z"
+      "grafana.app/createdBy": "access-policy:service",
+      "grafana.app/managedBy": "classic-file-provisioning",
+      "grafana.app/managerId": "dashboards-generales",
+      "grafana.app/sourceChecksum": "57d30f26ac5aa1b3b827c7baa7bcb05f",
+      "grafana.app/sourcePath": "/var/lib/grafana/dashboards/promociones.json",
+      "grafana.app/sourceTimestamp": "1792406460000",
+      "grafana.app/folder": ""
     }
   },
   "spec": {
@@ -23,20 +26,20 @@
       {
         "kind": "AnnotationQuery",
         "spec": {
-          "query": {
-            "kind": "DataQuery",
-            "group": "grafana",
-            "version": "v0",
-            "datasource": {
-              "name": "-- Grafana --"
-            },
-            "spec": {}
-          },
+          "builtIn": true,
           "enable": true,
           "hide": true,
           "iconColor": "rgba(0, 211, 255, 1)",
           "name": "Annotations & Alerts",
-          "builtIn": true
+          "query": {
+            "datasource": {
+              "name": "-- Grafana --"
+            },
+            "group": "grafana",
+            "kind": "DataQuery",
+            "spec": {},
+            "version": "v0"
+          }
         }
       }
     ],
@@ -47,10 +50,6 @@
       "panel-1": {
         "kind": "Panel",
         "spec": {
-          "id": 1,
-          "title": "New panel",
-          "description": "",
-          "links": [],
           "data": {
             "kind": "QueryGroup",
             "spec": {
@@ -58,31 +57,77 @@
                 {
                   "kind": "PanelQuery",
                   "spec": {
+                    "hidden": false,
                     "query": {
-                      "kind": "DataQuery",
-                      "group": "influxdb",
-                      "version": "v0",
                       "datasource": {
                         "name": "ds-influx"
                       },
+                      "group": "influxdb",
+                      "kind": "DataQuery",
                       "spec": {
                         "query": "from(bucket: \"ventas_diarias\")\r\n  |> range(start: 2024-01-01T00:00:00Z, stop: 2026-01-01T00:00:00Z)\r\n  |> filter(fn: (r) => r._measurement == \"ventas\" and (r._field == \"margen_eur\" or r._field == \"ingresos_eur\"))\r\n  |> group(columns: [\"PromoFlag\", \"_field\"])\r\n  |> sum()\r\n  |> pivot(rowKey: [\"PromoFlag\"], columnKey: [\"_field\"], valueColumn: \"_value\")\r\n  |> map(fn: (r) => ({PromoFlag: r.PromoFlag, margen_pct: r.margen_eur / r.ingresos_eur * 100.0}))\r\n  |> group()"
-                      }
+                      },
+                      "version": "v0"
                     },
-                    "refId": "A",
-                    "hidden": false
+                    "refId": "A"
                   }
                 }
               ],
-              "transformations": [],
-              "queryOptions": {}
+              "queryOptions": {},
+              "transformations": []
             }
           },
+          "description": "Margen porcentual sobre ingresos de las ventas con promoción frente a las ventas sin promoción (2024–2025). Las promociones dejan unos 9 puntos menos de margen (19,9 % frente a 29,0 %) sin aumentar las unidades por venta.",
+          "id": 1,
+          "links": [],
+          "title": "Margen con y sin promocion",
           "vizConfig": {
-            "kind": "VizConfig",
             "group": "barchart",
-            "version": "13.2.3",
+            "kind": "VizConfig",
             "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "fixedColor": "#ad46ff",
+                    "mode": "fixed"
+                  },
+                  "custom": {
+                    "axisBorderShow": false,
+                    "axisCenteredZero": false,
+                    "axisColorMode": "text",
+                    "axisLabel": "",
+                    "axisPlacement": "auto",
+                    "fillOpacity": 100,
+                    "gradientMode": "hue",
+                    "hideFrom": {
+                      "legend": false,
+                      "tooltip": false,
+                      "viz": false
+                    },
+                    "lineWidth": 1,
+                    "scaleDistribution": {
+                      "type": "linear"
+                    },
+                    "thresholdsStyle": {
+                      "mode": "off"
+                    }
+                  },
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "green",
+                        "value": 0
+                      },
+                      {
+                        "color": "red",
+                        "value": 80
+                      }
+                    ]
+                  }
+                },
+                "overrides": []
+              },
               "options": {
                 "barRadius": 0,
                 "barWidth": 0.9,
@@ -105,61 +150,15 @@
                 "xField": "time",
                 "xTickLabelRotation": 0,
                 "xTickLabelSpacing": 100
-              },
-              "fieldConfig": {
-                "defaults": {
-                  "thresholds": {
-                    "mode": "absolute",
-                    "steps": [
-                      {
-                        "value": 0,
-                        "color": "green"
-                      },
-                      {
-                        "value": 80,
-                        "color": "red"
-                      }
-                    ]
-                  },
-                  "color": {
-                    "mode": "fixed",
-                    "fixedColor": "#ad46ff"
-                  },
-                  "custom": {
-                    "axisBorderShow": false,
-                    "axisCenteredZero": false,
-                    "axisColorMode": "text",
-                    "axisLabel": "",
-                    "axisPlacement": "auto",
-                    "fillOpacity": 100,
-                    "gradientMode": "hue",
-                    "hideFrom": {
-                      "legend": false,
-                      "tooltip": false,
-                      "viz": false
-                    },
-                    "lineWidth": 1,
-                    "scaleDistribution": {
-                      "type": "linear"
-                    },
-                    "thresholdsStyle": {
-                      "mode": "off"
-                    }
-                  }
-                },
-                "overrides": []
               }
-            }
+            },
+            "version": "13.2.3"
           }
         }
       },
       "panel-2": {
         "kind": "Panel",
         "spec": {
-          "id": 2,
-          "title": "New panel",
-          "description": "",
-          "links": [],
           "data": {
             "kind": "QueryGroup",
             "spec": {
@@ -167,31 +166,55 @@
                 {
                   "kind": "PanelQuery",
                   "spec": {
+                    "hidden": false,
                     "query": {
-                      "kind": "DataQuery",
-                      "group": "influxdb",
-                      "version": "v0",
                       "datasource": {
                         "name": "ds-influx"
                       },
+                      "group": "influxdb",
+                      "kind": "DataQuery",
                       "spec": {
                         "query": "from(bucket: \"ventas_diarias\")\r\n  |> range(start: 2024-01-01T00:00:00Z, stop: 2026-01-01T00:00:00Z)\r\n  |> filter(fn: (r) => r._measurement == \"ventas\" and r.PromoFlag == \"Yes\" and (r._field == \"margen_eur\" or r._field == \"ingresos_eur\"))\r\n  |> group(columns: [\"_field\"])\r\n  |> sum()\r\n  |> pivot(rowKey: [\"_start\"], columnKey: [\"_field\"], valueColumn: \"_value\")\r\n  |> map(fn: (r) => ({_value: r.margen_eur / r.ingresos_eur * 100.0}))"
-                      }
+                      },
+                      "version": "v0"
                     },
-                    "refId": "A",
-                    "hidden": false
+                    "refId": "A"
                   }
                 }
               ],
-              "transformations": [],
-              "queryOptions": {}
+              "queryOptions": {},
+              "transformations": []
             }
           },
+          "description": "Margen porcentual sobre ingresos de las ventas realizadas con promoción (2024–2025)",
+          "id": 2,
+          "links": [],
+          "title": "Margen en ventas con promoción",
           "vizConfig": {
-            "kind": "VizConfig",
             "group": "gauge",
-            "version": "13.2.3",
+            "kind": "VizConfig",
             "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "mode": "thresholds"
+                  },
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "green",
+                        "value": 0
+                      },
+                      {
+                        "color": "red",
+                        "value": 80
+                      }
+                    ]
+                  }
+                },
+                "overrides": []
+              },
               "options": {
                 "barShape": "flat",
                 "barWidthFactor": 0.3,
@@ -219,29 +242,9 @@
                 "sizing": "auto",
                 "sparkline": false,
                 "textMode": "auto"
-              },
-              "fieldConfig": {
-                "defaults": {
-                  "thresholds": {
-                    "mode": "absolute",
-                    "steps": [
-                      {
-                        "value": 0,
-                        "color": "green"
-                      },
-                      {
-                        "value": 80,
-                        "color": "red"
-                      }
-                    ]
-                  },
-                  "color": {
-                    "mode": "thresholds"
-                  }
-                },
-                "overrides": []
               }
-            }
+            },
+            "version": "13.2.3"
           }
         }
       }
@@ -253,27 +256,27 @@
           {
             "kind": "GridLayoutItem",
             "spec": {
-              "x": 0,
-              "y": 0,
-              "width": 12,
-              "height": 8,
               "element": {
                 "kind": "ElementReference",
                 "name": "panel-1"
-              }
+              },
+              "height": 8,
+              "width": 12,
+              "x": 0,
+              "y": 0
             }
           },
           {
             "kind": "GridLayoutItem",
             "spec": {
-              "x": 12,
-              "y": 0,
-              "width": 12,
-              "height": 8,
               "element": {
                 "kind": "ElementReference",
                 "name": "panel-2"
-              }
+              },
+              "height": 8,
+              "width": 12,
+              "x": 12,
+              "y": 0
             }
           }
         ]
@@ -281,12 +284,17 @@
     },
     "links": [],
     "liveNow": false,
+    "preferences": {
+      "layout": {
+        "kind": "GridLayout",
+        "spec": {
+          "items": []
+        }
+      }
+    },
     "preload": false,
     "tags": [],
     "timeSettings": {
-      "timezone": "browser",
-      "from": "2024-02-01T00:00:00.000Z",
-      "to": "2026-01-01T00:00:00.000Z",
       "autoRefresh": "",
       "autoRefreshIntervals": [
         "5s",
@@ -300,18 +308,13 @@
         "2h",
         "1d"
       ],
+      "fiscalYearStartMonth": 0,
+      "from": "2024-02-01T00:00:00.000Z",
       "hideTimepicker": false,
-      "fiscalYearStartMonth": 0
+      "timezone": "browser",
+      "to": "2026-01-01T00:00:00.000Z"
     },
     "title": "Promociones",
-    "variables": [],
-    "preferences": {
-      "layout": {
-        "kind": "GridLayout",
-        "spec": {
-          "items": []
-        }
-      }
-    }
+    "variables": []
   }
 }

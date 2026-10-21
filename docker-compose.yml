@@ -40,6 +40,13 @@ services:
       INFLUX_ORG: ${INFLUX_ORG}
       INFLUX_BUCKET_DAILY: ${INFLUX_BUCKET_DAILY}
       INFLUX_READ_TOKEN: ${INFLUX_READ_TOKEN}
+      # Email para alertas
+      GF_SMTP_ENABLED: "true"
+      GF_SMTP_HOST: smtp.gmail.com:587
+      GF_SMTP_USER: ${SMTP_USER}
+      GF_SMTP_PASSWORD: ${SMTP_PASSWORD}
+      GF_SMTP_FROM_ADDRESS: ${SMTP_USER}
+      GF_SMTP_FROM_NAME: Grafana Farmacias
     volumes:
       - grafana-data:/var/lib/grafana
       - ./BDA/grafana/provisioning:/etc/grafana/provisioning:ro
