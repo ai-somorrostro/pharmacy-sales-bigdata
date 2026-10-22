@@ -348,6 +348,8 @@ Edita `.env` y sustituye **todos** los valores de ejemplo por los reales. Variab
 
 > `docker-compose.yml` valida las variables con `:?`, por lo que **el entorno no arranca si falta cualquiera de ellas**.
 
+> **Tokens de InfluxDB**: se crean en *InfluxDB → Settings → API Tokens* (o con `POST /api/v2/authorizations`). `INFLUX_READ_TOKEN` debe tener permiso `read` sobre **los dos buckets** (`ventas_diarias` y `ventas_mensuales`) y lo usa el datasource de Grafana; `INFLUX_WRITE_TOKEN` necesita permiso `write` sobre ambos y lo usa Node-RED. Si el valor guardado en `.env` no corresponde a un token activo, todas las consultas fallan con `401 unauthorized` (las alertas pasan a estado `error`).
+
 ### 8.4 Despliegue
 
 El script `deploy.sh` es el punto de entrada único:
