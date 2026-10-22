@@ -449,9 +449,10 @@ El servicio `mcp-grafana` expone Grafana mediante **Model Context Protocol** sob
 
 Para usarlo:
 
-1. Exporta el token como variable de entorno: `export MCP_GRAFANA_SERVER_TOKEN=<GRAFANA_MCP_TOKEN>`.
-2. Comprueba que el contenedor está vivo: `curl http://127.0.0.1:8000/mcp`.
-3. Abre opencode en la raíz del proyecto: la configuración de `opencode.json` se carga automáticamente.
+1. **Dos tokens distintos**: `GRAFANA_MCP_TOKEN` (*service account*) es con el que el servidor MCP se autentica **contra Grafana**; `MCP_GRAFANA_SERVER_TOKEN` es el que deben presentar los **clientes** en la cabecera `Authorization: Bearer`. Los dos están en `.env` y `docker-compose.yml` los pasa al contenedor.
+2. Exporta el token del cliente: `export MCP_GRAFANA_SERVER_TOKEN=<valor de .env>` (en Windows, `setx MCP_GRAFANA_SERVER_TOKEN <valor>` para que lo hereden las sesiones nuevas).
+3. Comprueba la conexión: `opencode mcp list` debe mostrar `mcp-grafana connected`.
+4. Abre opencode en la raíz del proyecto: la configuración de `opencode.json` se carga automáticamente.
 
 ---
 
