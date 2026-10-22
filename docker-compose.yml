@@ -64,6 +64,9 @@ services:
     depends_on:
       influxdb:
         condition: service_healthy
+    # init-flows.sh inyecta INFLUX_WRITE_TOKEN en el nodo de InfluxDB
+    # y luego arranca el entrypoint original de Node-RED
+    entrypoint: ["/bin/sh", "/opt/init-flows.sh"]
     ports:
       - "127.0.0.1:1881:1880"
     environment:

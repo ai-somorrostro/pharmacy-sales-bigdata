@@ -153,7 +153,8 @@ Todas las versiones de imagen están **fijadas** en `.env` para que el despliegu
 │   │   └── init-buckets.sh           # Creación del bucket mensual al arrancar
 │   ├── nodered/
 │   │   ├── Dockerfile                # Node-RED + nodo InfluxDB + flows.json
-│   │   └── flows.json                # 3 flujos: diario, mensual y simuladas
+│   │   ├── flows.json                # 3 flujos: diario, mensual y simuladas
+│   │   └── init-flows.sh            # Inyecta INFLUX_WRITE_TOKEN al arrancar
 │   └── grafana/
 │       ├── dashboards/               # 4 dashboards (formato Kubernetes CRD)
 │       │   ├── evolucion_mensual.json
@@ -267,7 +268,7 @@ Excel (4 hojas)         joins + tipado + fechas    Node-RED             Grafana
 
 ### 7.2 `BDA/preparar_datos_influxdb.ipynb` — Preparación (BDA)
 
-Siete pasos guiados, con comprobaciones en cada uno:
+Siete pasos guiados, con comprobaciones en cada uno. El notebook usa **rutas relativas** (`../Data/Pharmacy_data.xlsx` y los tres CSV de salida), por lo que se ejecuta desde la carpeta `BDA/`:
 
 | Paso | Acción | Verificación |
 |---|---|---|
@@ -277,7 +278,7 @@ Siete pasos guiados, con comprobaciones en cada uno:
 | 4 | Agregar por mes | fecha = día 1 del mes |
 | 5 | Generar datos simulados 2026 | sin márgenes negativos |
 | 6 | **Comprobar** | duplicados = 0, ingresos diario = mensual = original, nulos = 0 |
-| 7 | Guardar CSV | `ventas_diarias.csv`, `ventas_mensuales.csv` |
+| 7 | Guardar CSV | `ventas_diarias.csv`, `ventas_mensuales.csv`, `ventas_simuladas.csv` |
 
 > Si las comprobaciones del paso 6 no cuadran, el proceso **no debe continuar**: revisar los pasos anteriores.
 
@@ -289,12 +290,20 @@ Siete pasos guiados, con comprobaciones en cada uno:
 [file in] → [csv] → [function "a puntos de InfluxDB"] → [influxdb batch]
 ```
 
-- **`file in`**: lee el CSV en modo UTF-8.
+- **`file in`**: lee el CSV en modo UTF-8 desde **`/csv`** (`${DATA_DIR:-./BDA}:/csv:ro`), es decir `/csv/ventas_diarias.csv`, `/csv/ventas_mensuales.csv` y `/csv/ventas_simuladas.csv`.
 - **`csv`**: separa por `,` y salta la cabecera.
 - **`function`**: convierte cada fila en un punto de InfluxDB con `measurement`, `tags`, `fields` y `timestamp`; los flujos diario y mensual **envían en lotes de 5.000 puntos** (`CHUNK = 5000`) para no saturar la memoria; el flujo de simuladas valida cada fila y descarta las inválidas con `node.warn`.
 - **`influxdb batch`**: escribe en el bucket correspondiente (`ventas_diarias` / `ventas_mensuales`) dentro de la organización configurada.
 
 Los flujos se activan manualmente desde el botón *Inject* de Node-RED.
+
+**Token de escritura.** Node-RED cifra las credenciales con una clave propia de cada instalación, así que el token de InfluxDB **no puede versionarse** en `flows.json`. Lo inyecta `BDA/nodered/init-flows.sh` en el arranque del contenedor:
+
+1. lee `INFLUX_WRITE_TOKEN` del entorno,
+2. lo escribe en `credentials.token` del nodo de configuración `influxdb` de `/data/flows.json`,
+3. lanza Node-RED con su *entrypoint* habitual.
+
+El script está incluido en la imagen (`Dockerfile`) y es el `entrypoint` del servicio `nodered` en `docker-compose.yml`.
 
 ### 7.4 Almacenamiento — InfluxDB
 
@@ -355,8 +364,8 @@ El script `deploy.sh` es el punto de entrada único:
 ### 8.5 Ejecución del pipeline
 
 ```bash
-# 1) Generar los CSV (o abrir el notebook en Jupyter)
-jupyter lab
+# 1) Generar los CSV (abrir el notebook desde la carpeta BDA/ y ejecutarlo)
+cd BDA && jupyter lab
 
 # 2) Levantar la plataforma
 ./deploy.sh up
@@ -364,6 +373,8 @@ jupyter lab
 # 3) Cargar los datos: abrir http://127.0.0.1:1881 y pulsar "Inject"
 #    en cada uno de los tres flujos
 ```
+
+> Si se modifican `flows.json`, el `Dockerfile` o `init-flows.sh`, hay que **reconstruir la imagen** de Node-RED: `docker compose up -d --build nodered`. Los datos ya cargados en InfluxDB no se ven afectados (vuelven a escribirse los mismos puntos).
 
 ---
 
@@ -401,9 +412,9 @@ Las tres reglas se aprovisionan desde `BDA/grafana/provisioning/alerting/`, se e
 
 | Regla | Cálculo (Flux) | Condición de disparo |
 |---|---|---|
-| **Margen % en promoción** | `margen_eur / ingresos_eur * 100` sobre las ventas con `PromoFlag = "Yes"` | `> 0` |
+| **Margen % en promoción por debajo del 15 %** | `margen_eur / ingresos_eur * 100` sobre las ventas con `PromoFlag = "Yes"` en los **últimos 30 días** | `< 15 %` |
 | **Ingresos del mes anterior por debajo del objetivo** | suma de `ingresos_eur` del mes natural anterior | `< 350.000 €` |
-| **Crecimiento de ingresos negativo por país** | variación 2025 vs 2024 de `ingresos_eur`, agrupado por `Country` | `< 0 %` |
+| **Crecimiento de ingresos negativo por país (12 meses)** | variación de `ingresos_eur` de los **últimos 12 meses** frente a los **12 meses anteriores**, agrupado por `Country` | `< 0 %` |
 
 - **Contact point**: receptor de email (Grafana → *Alerting → Contact points*).
 - **Política**: agrupación por `grafana_folder` y `alertname`.
@@ -411,7 +422,7 @@ Las tres reglas se aprovisionan desde `BDA/grafana/provisioning/alerting/`, se e
 
 > Para que el email llegue, `SMTP_USER` y `SMTP_PASSWORD` deben ser válidos y la cuenta debe permitir el acceso SMTP (en Gmail, «app password»).
 
-> ⚠️ La regla **«Margen % en promoción»** tiene un umbral permisivo (`> 0`): con el margen real de las promociones (~19,9 %) la alerta queda permanentemente activa. Conviene subir el umbral (por ejemplo `> 20`, o disparar por debajo de un mínimo como `< 15 %`) para que signififique algo.
+> Las tres reglas usan **rangos dinámicos** (rolling 30 días, mes natural anterior y comparación interanual de 12 meses), de modo que se recalculan solas en cada evaluación. Con los datos de la demo: la regla de margen queda en silencio (18,9 % > 15 %), mientras que las otras dos disparan por la anomalía de septiembre de 2026 (ingresos del mes en 291.602 € < 350.000 € y cinco países con crecimiento negativo).
 
 ---
 
@@ -494,11 +505,12 @@ Guía paso a paso pensada para no cometerse el error clásico de InfluxDB (punto
 
 ## 16. Notas y limitaciones conocidas
 
-- **Rutas de los CSV en Node-RED**: `flows.json` guarda rutas absolutas del host WSL (`/mnt/c/clase/...`). Dentro del contenedor los CSV se montan en **`/csv`** (`${DATA_DIR:-./BDA}:/csv:ro`), por lo que hay que **actualizar la ruta de los nodos `file in`** a `/csv/ventas_diarias.csv`, `/csv/ventas_mensuales.csv` y `/csv/ventas_simuladas.csv`.
-- **Variables de entorno**: `.env.example` no incluye todavía `GRAFANA_MCP_VERSION`, `GRAFANA_MCP_TOKEN`, `GRAFANA_MCP_PORT`, `SMTP_USER` ni `SMTP_PASSWORD`, que `docker-compose.yml` exige. Se deben añadir manualmente (o completar la plantilla).
+- **Rutas de los CSV en Node-RED**: dentro del contenedor los CSV se montan en **`/csv`** (`${DATA_DIR:-./BDA}:/csv:ro`). Los nodos `file in` de `flows.json` ya apuntan a `/csv/ventas_diarias.csv`, `/csv/ventas_mensuales.csv` y `/csv/ventas_simuladas.csv`, de modo que el flujo funciona sin tocar nada al desplegar.
+- **Variables de entorno**: `.env.example` incluye ya **todas** las variables que `docker-compose.yml` exige (`GRAFANA_MCP_VERSION`, `GRAFANA_MCP_TOKEN`, `GRAFANA_MCP_PORT`, `MCP_GRAFANA_SERVER_TOKEN`, `SMTP_USER` y `SMTP_PASSWORD`).
+- **Token de InfluxDB en Node-RED**: `init-flows.sh` lo escribe en `/data/flows.json` dentro del volumen `nodered-data`. El token queda en claro en ese fichero local (mismo nivel de confianza que `.env`), nunca en el repositorio.
 - **Puerto de InfluxDB**: se publica en `8087` (no en `8086`) para no chocar con el puerto por defecto de InfluxDB en el host; la variable `INFLUX_PORT` del `.env` no interviene en el `docker-compose.yml`.
 - **`.env` está en `.gitignore`**: nunca subas tokens ni contraseñas al repositorio.
-- **CSV generados no se versionan**: el `.gitignore` excluye `*.csv`; las versiones que hay en `BDA/` están añadidas de forma explícita para poder versionar los datos de partida.
+- **CSV generados no se versionan**: el `.gitignore` excluye `*.csv`; solo `BDA/ventas_diarias.csv` y `BDA/ventas_mensuales.csv` están añadidos de forma explícita para versionar los datos de partida. `BDA/ventas_simuladas.csv` se regenera con el notebook (figura en `.gitignore`).
 - **Limitación analítica**: no hay datos de clientes, de stock, de tráfico ni de competencia; el análisis de promociones mide unidades por venta, no número de clientes atraídos.
 - **Datos simulados**: `ventas_simuladas.csv` es una proyección estadística, no información real; sirve para validar alertas y automatismos.
 
@@ -513,7 +525,9 @@ Guía paso a paso pensada para no cometerse el error clásico de InfluxDB (punto
 | Los dashboards salen vacíos | no se han cargado los CSV o el rango de tiempo no cubre los datos | pulsa *Inject* en los flujos de Node-RED y ajusta el rango temporal del panel |
 | No llegan los emails de alerta | SMTP mal configurado o cuenta sin *app password* | revisa `SMTP_USER`/`SMTP_PASSWORD` y la política de Grafana |
 | El MCP no responde | token incorrecto o contenedor caído | `docker compose logs mcp-grafana` y `curl http://127.0.0.1:8000/mcp` |
-| Node-RED no encuentra el CSV | rutas absolutas del host en `flows.json` | cambia la ruta del nodo `file in` a `/csv/<fichero>.csv` (§16) |
+| Node-RED no encuentra el CSV | la ruta del nodo `file in` no apunta al montaje `/csv` | comprueba que apunta a `/csv/<fichero>.csv` (§16) |
+| Node-RED no escribe en InfluxDB | falta el token de escritura en el flujo | revisa que `INFLUX_WRITE_TOKEN` esté en `.env` y mira el log `[init-flows]` al arrancar el contenedor |
+| Las alertas no se evaluan | las reglas se aprovisionan al arrancar Grafana | `docker compose restart grafana` después de cambiar `rules.json` |
 | Cambié las variables y no se aplican | hay que recrear los contenedores | `./deploy.sh down && ./deploy.sh up` |
 
 ---
