@@ -1,0 +1,16 @@
+apiVersion: 1
+
+datasources:
+  - name: ds-influx
+    # Debe coincidir con el uid que usan tus dashboards y alertas exportados
+    uid: ds-influx
+    type: influxdb
+    access: proxy
+    url: http://influxdb:8086
+    isDefault: true
+    jsonData:
+      version: Flux
+      organization: ${INFLUX_ORG}
+      defaultBucket: ${INFLUX_BUCKET_DAILY}
+    secureJsonData:
+      token: ${INFLUX_READ_TOKEN}

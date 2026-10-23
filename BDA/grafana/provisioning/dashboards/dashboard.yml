@@ -1,0 +1,12 @@
+apiVersion: 1
+
+providers:
+  - name: 'dashboards-generales'
+    orgId: 1
+    folder: ''
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 10
+    options:
+      # Ruta dentro del contenedor donde se mapean los JSONs
+      path: /var/lib/grafana/dashboards

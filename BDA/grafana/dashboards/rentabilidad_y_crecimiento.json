@@ -1,0 +1,454 @@
+{
+  "apiVersion": "dashboard.grafana.app/v2",
+  "kind": "Dashboard",
+  "metadata": {
+    "name": "adkgclr",
+    "namespace": "default",
+    "uid": "5c92b8e9-13a3-4a8d-aded-23844be0fea0",
+    "resourceVersion": "1792491810754998",
+    "generation": 5,
+    "creationTimestamp": "2026-10-20T09:38:51Z",
+    "labels": {
+      "grafana.app/deprecatedInternalID": "290383320109056"
+    },
+    "annotations": {
+      "grafana.app/createdBy": "user:ag1dyn0zmg1z4e",
+      "grafana.app/saved-from-ui": "Grafana v13.2.3 (90ffed056f)",
+      "grafana.app/updatedBy": "user:ag1dyn0zmg1z4e",
+      "grafana.app/updatedTimestamp": "2026-10-20T10:23:30Z"
+    }
+  },
+  "spec": {
+    "annotations": [
+      {
+        "kind": "AnnotationQuery",
+        "spec": {
+          "query": {
+            "kind": "DataQuery",
+            "group": "grafana",
+            "version": "v0",
+            "datasource": {
+              "name": "-- Grafana --"
+            },
+            "spec": {}
+          },
+          "enable": true,
+          "hide": true,
+          "iconColor": "rgba(0, 211, 255, 1)",
+          "name": "Annotations & Alerts",
+          "builtIn": true
+        }
+      }
+    ],
+    "cursorSync": "Off",
+    "editable": true,
+    "elements": {
+      "panel-1": {
+        "kind": "Panel",
+        "spec": {
+          "id": 1,
+          "title": "Crecimiento de ingresos por país (2025 vs 2024)",
+          "description": "Variación porcentual de los ingresos entre 2024 y 2025 en cada mercado",
+          "links": [],
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "influxdb",
+                      "version": "v0",
+                      "datasource": {
+                        "name": "ds-influx"
+                      },
+                      "spec": {
+                        "query": "import \"date\"\r\n\r\nfrom(bucket: \"ventas_mensuales\")\r\n  |> range(start: 2024-01-01T00:00:00Z, stop: 2026-01-01T00:00:00Z)\r\n  |> filter(fn: (r) => r._measurement == \"ventas\" and r._field == \"ingresos_eur\")\r\n  |> map(fn: (r) => ({r with year: string(v: date.year(t: r._time))}))\r\n  |> group(columns: [\"Country\", \"year\"])\r\n  |> sum()\r\n  |> pivot(rowKey: [\"Country\"], columnKey: [\"year\"], valueColumn: \"_value\")\r\n  |> map(fn: (r) => ({Country: r.Country, growth_pct: (r[\"2025\"] / r[\"2024\"] - 1.0) * 100.0}))\r\n  |> group()\r\n  |> sort(columns: [\"growth_pct\"], desc: true)"
+                      }
+                    },
+                    "refId": "A",
+                    "hidden": false
+                  }
+                }
+              ],
+              "transformations": [],
+              "queryOptions": {}
+            }
+          },
+          "vizConfig": {
+            "kind": "VizConfig",
+            "group": "barchart",
+            "version": "13.2.3",
+            "spec": {
+              "options": {
+                "barRadius": 0.05,
+                "barWidth": 0.95,
+                "fullHighlight": false,
+                "groupWidth": 0.8,
+                "legend": {
+                  "calcs": [],
+                  "displayMode": "list",
+                  "placement": "right",
+                  "showLegend": true
+                },
+                "orientation": "horizontal",
+                "showValue": "never",
+                "stacking": "none",
+                "tooltip": {
+                  "hideZeros": false,
+                  "mode": "single",
+                  "sort": "none"
+                },
+                "xField": "Country",
+                "xTickLabelRotation": 0,
+                "xTickLabelSpacing": 100
+              },
+              "fieldConfig": {
+                "defaults": {
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "value": 0,
+                        "color": "green"
+                      },
+                      {
+                        "value": 80,
+                        "color": "red"
+                      }
+                    ]
+                  },
+                  "color": {
+                    "mode": "palette-classic"
+                  },
+                  "custom": {
+                    "axisBorderShow": false,
+                    "axisCenteredZero": false,
+                    "axisColorMode": "text",
+                    "axisLabel": "% crecimiento",
+                    "axisPlacement": "auto",
+                    "fillOpacity": 100,
+                    "gradientMode": "none",
+                    "hideFrom": {
+                      "legend": false,
+                      "tooltip": false,
+                      "viz": false
+                    },
+                    "lineWidth": 0,
+                    "scaleDistribution": {
+                      "type": "linear"
+                    },
+                    "thresholdsStyle": {
+                      "mode": "off"
+                    }
+                  }
+                },
+                "overrides": []
+              }
+            }
+          }
+        }
+      },
+      "panel-2": {
+        "kind": "Panel",
+        "spec": {
+          "id": 2,
+          "title": "Crecimiento de ingresos por categoria 2025-2024",
+          "description": "Variación porcentual de los ingresos entre 2024 y 2025 en cada categoría. Wellness, Personal Care y Prescription crecen por encima del 5 %, OTC se queda en un +2,3 % y Medical Devices es la única categoría que retrocede (−0,8 %). Sirve para decidir en qué categorías reforzar el surtido y dónde corregir.",
+          "links": [],
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "influxdb",
+                      "version": "v0",
+                      "datasource": {
+                        "name": "ds-influx"
+                      },
+                      "spec": {
+                        "query": "import \"date\"\r\n\r\nfrom(bucket: \"ventas_mensuales\")\r\n  |> range(start: 2024-01-01T00:00:00Z, stop: 2026-01-01T00:00:00Z)\r\n  |> filter(fn: (r) => r._measurement == \"ventas\" and r._field == \"ingresos_eur\")\r\n  |> map(fn: (r) => ({r with year: string(v: date.year(t: r._time))}))\r\n  |> group(columns: [\"Category\", \"year\"])\r\n  |> sum()\r\n  |> pivot(rowKey: [\"Category\"], columnKey: [\"year\"], valueColumn: \"_value\")\r\n  |> map(fn: (r) => ({Category: r.Category, growth_pct: (r[\"2025\"] / r[\"2024\"] - 1.0) * 100.0}))\r\n  |> group()\r\n  |> sort(columns: [\"growth_pct\"], desc: true)"
+                      }
+                    },
+                    "refId": "A",
+                    "hidden": false
+                  }
+                }
+              ],
+              "transformations": [],
+              "queryOptions": {}
+            }
+          },
+          "vizConfig": {
+            "kind": "VizConfig",
+            "group": "barchart",
+            "version": "13.2.3",
+            "spec": {
+              "options": {
+                "barRadius": 0,
+                "barWidth": 0.9,
+                "fullHighlight": false,
+                "groupWidth": 0.8,
+                "legend": {
+                  "calcs": [],
+                  "displayMode": "list",
+                  "placement": "right",
+                  "showLegend": true
+                },
+                "orientation": "auto",
+                "showValue": "never",
+                "stacking": "none",
+                "tooltip": {
+                  "hideZeros": false,
+                  "mode": "single",
+                  "sort": "none"
+                },
+                "xField": "time",
+                "xTickLabelRotation": 0,
+                "xTickLabelSpacing": 100
+              },
+              "fieldConfig": {
+                "defaults": {
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "value": 0,
+                        "color": "green"
+                      },
+                      {
+                        "value": 80,
+                        "color": "red"
+                      }
+                    ]
+                  },
+                  "color": {
+                    "mode": "fixed",
+                    "fixedColor": "#ad46ff"
+                  },
+                  "custom": {
+                    "axisBorderShow": false,
+                    "axisCenteredZero": false,
+                    "axisColorMode": "text",
+                    "axisLabel": "% crecimiento",
+                    "axisPlacement": "auto",
+                    "fillOpacity": 100,
+                    "gradientMode": "hue",
+                    "hideFrom": {
+                      "legend": false,
+                      "tooltip": false,
+                      "viz": false
+                    },
+                    "lineWidth": 1,
+                    "scaleDistribution": {
+                      "type": "linear"
+                    },
+                    "thresholdsStyle": {
+                      "mode": "off"
+                    }
+                  }
+                },
+                "overrides": []
+              }
+            }
+          }
+        }
+      },
+      "panel-3": {
+        "kind": "Panel",
+        "spec": {
+          "id": 3,
+          "title": "Margen cedido por promociones, por categoría",
+          "description": "Estimación del margen adicional (en euros) que se habría obtenido en 2024–2025 si las ventas en promoción hubieran tenido el margen normal de su categoría. Prescription concentra más de un tercio del total (28,7 k€), seguida de OTC (16,3 k€) y Wellness (15,4 k€). Sirve para decidir en qué categorías conviene limitar o rediseñar las promociones.",
+          "links": [],
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "influxdb",
+                      "version": "v0",
+                      "datasource": {
+                        "name": "ds-influx"
+                      },
+                      "spec": {
+                        "query": "from(bucket: \"ventas_mensuales\")\r\n  |> range(start: 2024-01-01T00:00:00Z, stop: 2026-01-01T00:00:00Z)\r\n  |> filter(fn: (r) => r._measurement == \"ventas\" and (r._field == \"ingresos_eur\" or r._field == \"margen_eur\"))\r\n  |> map(fn: (r) => ({r with k: r._field + \"_\" + r.PromoFlag}))\r\n  |> group(columns: [\"Category\", \"k\"])\r\n  |> sum()\r\n  |> pivot(rowKey: [\"Category\"], columnKey: [\"k\"], valueColumn: \"_value\")\r\n  |> map(fn: (r) => ({\r\n       Category: r.Category,\r\n       margen_cedido_eur: r.ingresos_eur_Yes * (r.margen_eur_No / r.ingresos_eur_No) - r.margen_eur_Yes\r\n     }))\r\n  |> group()\r\n  |> sort(columns: [\"margen_cedido_eur\"], desc: true)"
+                      }
+                    },
+                    "refId": "A",
+                    "hidden": false
+                  }
+                }
+              ],
+              "transformations": [],
+              "queryOptions": {}
+            }
+          },
+          "vizConfig": {
+            "kind": "VizConfig",
+            "group": "barchart",
+            "version": "13.2.3",
+            "spec": {
+              "options": {
+                "barRadius": 0,
+                "barWidth": 0.9,
+                "fullHighlight": false,
+                "groupWidth": 0.8,
+                "legend": {
+                  "calcs": [],
+                  "displayMode": "list",
+                  "placement": "right",
+                  "showLegend": true
+                },
+                "orientation": "horizontal",
+                "showValue": "never",
+                "stacking": "none",
+                "tooltip": {
+                  "hideZeros": false,
+                  "mode": "single",
+                  "sort": "none"
+                },
+                "xField": "time",
+                "xTickLabelRotation": 0,
+                "xTickLabelSpacing": 100
+              },
+              "fieldConfig": {
+                "defaults": {
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "value": 0,
+                        "color": "green"
+                      },
+                      {
+                        "value": 80,
+                        "color": "red"
+                      }
+                    ]
+                  },
+                  "color": {
+                    "mode": "fixed",
+                    "fixedColor": "#ad46ff"
+                  },
+                  "custom": {
+                    "axisBorderShow": false,
+                    "axisCenteredZero": false,
+                    "axisColorMode": "text",
+                    "axisLabel": "",
+                    "axisPlacement": "auto",
+                    "fillOpacity": 100,
+                    "gradientMode": "hue",
+                    "hideFrom": {
+                      "legend": false,
+                      "tooltip": false,
+                      "viz": false
+                    },
+                    "lineWidth": 1,
+                    "scaleDistribution": {
+                      "type": "linear"
+                    },
+                    "thresholdsStyle": {
+                      "mode": "off"
+                    }
+                  }
+                },
+                "overrides": []
+              }
+            }
+          }
+        }
+      }
+    },
+    "layout": {
+      "kind": "GridLayout",
+      "spec": {
+        "items": [
+          {
+            "kind": "GridLayoutItem",
+            "spec": {
+              "x": 0,
+              "y": 0,
+              "width": 12,
+              "height": 8,
+              "element": {
+                "kind": "ElementReference",
+                "name": "panel-1"
+              }
+            }
+          },
+          {
+            "kind": "GridLayoutItem",
+            "spec": {
+              "x": 12,
+              "y": 0,
+              "width": 12,
+              "height": 8,
+              "element": {
+                "kind": "ElementReference",
+                "name": "panel-2"
+              }
+            }
+          },
+          {
+            "kind": "GridLayoutItem",
+            "spec": {
+              "x": 0,
+              "y": 8,
+              "width": 12,
+              "height": 8,
+              "element": {
+                "kind": "ElementReference",
+                "name": "panel-3"
+              }
+            }
+          }
+        ]
+      }
+    },
+    "links": [],
+    "liveNow": false,
+    "preload": false,
+    "tags": [],
+    "timeSettings": {
+      "timezone": "browser",
+      "from": "now/fy",
+      "to": "now/fy",
+      "autoRefresh": "",
+      "autoRefreshIntervals": [
+        "5s",
+        "10s",
+        "30s",
+        "1m",
+        "5m",
+        "15m",
+        "30m",
+        "1h",
+        "2h",
+        "1d"
+      ],
+      "hideTimepicker": false,
+      "fiscalYearStartMonth": 0
+    },
+    "title": "Rentabilidad y Crecimiento en Farmacias",
+    "variables": [],
+    "preferences": {
+      "layout": {
+        "kind": "GridLayout",
+        "spec": {
+          "items": []
+        }
+      }
+    }
+  }
+}
