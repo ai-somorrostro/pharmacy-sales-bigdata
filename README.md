@@ -502,24 +502,6 @@ Guía paso a paso pensada para no cometerse el error clásico de InfluxDB (punto
 - **Limitación analítica**: no hay datos de clientes, de stock, de tráfico ni de competencia; el análisis de promociones mide unidades por venta, no número de clientes atraídos.
 - **Datos simulados**: `ventas_simuladas.csv` es una proyección estadística, no información real; sirve para validar alertas y automatismos.
 
----
+## 17. Autores
 
-## 17. Solución de problemas
-
-| Síntoma | Causa probable | Solución |
-|---|---|---|
-| `ERROR: variable is not set. ...` al hacer `docker compose up` | falta una variable obligatoria en `.env` | revisa la lista de la §8.3; `docker compose config` muestra las que faltan |
-| `the name "..." was not found` / `no such bucket` | el bucket mensual no se creó | comprueba `docker compose logs influxdb` y que `BDA/influxdb/init-buckets.sh` está montado en `/docker-entrypoint-initdb.d/` |
-| Los dashboards salen vacíos | no se han cargado los CSV o el rango de tiempo no cubre los datos | pulsa *Inject* en los flujos de Node-RED y ajusta el rango temporal del panel |
-| No llegan los emails de alerta | SMTP mal configurado o cuenta sin *app password* | revisa `SMTP_USER`/`SMTP_PASSWORD` y la política de Grafana |
-| El MCP no responde | token incorrecto o contenedor caído | `docker compose logs mcp-grafana` y `curl http://127.0.0.1:8000/mcp` |
-| Node-RED no encuentra el CSV | rutas absolutas del host en `flows.json` | cambia la ruta del nodo `file in` a `/csv/<fichero>.csv` (§16) |
-| Cambié las variables y no se aplican | hay que recrear los contenedores | `./deploy.sh down && ./deploy.sh up` |
-
----
-
-## 18. Licencia y créditos
-
-- **Código del proyecto**: uso académico (asignatura SBD / Reto 0).
-- **Dataset**: *European Pharmacy Sales* de Kaggle, **licencia MIT**. Los ficheros generados (`ventas_*.csv`) derivan de él y heredan la misma licencia.
-- **Componentes de terceros**: InfluxDB (MIT), Grafana (AGPL-3.0), Node-RED (Apache-2.0), `node-red-contrib-influxdb` (MIT), `grafana/mcp-grafana` (Apache-2.0).
+- **Aimar Mora**
