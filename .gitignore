@@ -246,3 +246,6 @@ __pycache__/
 BDA/grafana/dashboards-backup-20261016-131236/
 grafana-data-backup.tar.gz
 .env
+
+# Token del cliente MCP (opencode.json lo lee de aquí; lo genera ./deploy.sh mcp-token)
+mcp-token.txt

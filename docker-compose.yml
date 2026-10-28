@@ -53,6 +53,11 @@ services:
       - grafana-data:/var/lib/grafana
       - ./BDA/grafana/provisioning:/etc/grafana/provisioning:ro
       - ./BDA/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:3000/api/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
   nodered:
     build:
       context: ./BDA/nodered
@@ -82,19 +87,26 @@ services:
 
 
 
+  # El MCP necesita un token de service account que solo se puede crear con
+  # Grafana ya arrancado, así que va en un profile aparte y no se levanta con
+  # un "docker compose up" normal. Se genera y arranca con: ./deploy.sh mcp-token
+  # (los tokens no usan ":?" porque Compose valida todo el fichero, incluidos
+  # los servicios de profiles inactivos, y bloquearía el primer arranque).
   mcp-grafana:
     image: grafana/mcp-grafana:${GRAFANA_MCP_VERSION:?define GRAFANA_MCP_VERSION en .env}
     container_name: mcp-grafana
+    profiles: ["mcp"]
     restart: unless-stopped
     depends_on:
-      - grafana
+      grafana:
+        condition: service_healthy
     environment:
       GRAFANA_URL: http://grafana:3000
-      GRAFANA_SERVICE_ACCOUNT_TOKEN: ${GRAFANA_MCP_TOKEN:?define GRAFANA_MCP_TOKEN en .env}
+      GRAFANA_SERVICE_ACCOUNT_TOKEN: ${GRAFANA_MCP_TOKEN:-}
       # Token que deben presentar los clientes MCP (opencode.json) al
       # llamar a /mcp. Es distinto del service account token: este
       # autentica al cliente frente al servidor MCP.
-      MCP_GRAFANA_SERVER_TOKEN: ${MCP_GRAFANA_SERVER_TOKEN:?define MCP_GRAFANA_SERVER_TOKEN en .env}
+      MCP_GRAFANA_SERVER_TOKEN: ${MCP_GRAFANA_SERVER_TOKEN:-}
     command:
       - --transport
       - streamable-http
