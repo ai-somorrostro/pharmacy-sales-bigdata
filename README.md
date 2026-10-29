@@ -82,23 +82,52 @@ El repositorio manda: `BDA/nodered/flows.json` se monta en el contenedor y `init
 >   --start 2026-01-01T00:00:00Z --stop 2100-01-01T00:00:00Z
 > ```
 
+## Python y notebooks
+
+### Dataset
+
+`Data/Pharmacy_data.xlsx` es el dataset original (*European Pharmacy Sales*, Kaggle, licencia MIT) y está versionado: los notebooks funcionan nada más clonar. Tiene 4 hojas en esquema de estrella: `FactSales` (ventas) y las dimensiones `DimDate`, `DimPharmacy` y `DimProduct`.
+
+### Entorno
+
+```bash
+python -m venv .venv
+.venv\Scripts\activate            # Windows (PowerShell)
+source .venv/bin/activate         # Linux / WSL / macOS
+pip install -r requirements.txt
+jupyter lab
+```
+
+`requirements.txt` solo incluye lo que usan los notebooks (`pandas`, `numpy`, `matplotlib`, `openpyxl` y `jupyterlab`).
+
+### Notebooks
+
+| Notebook | Para qué sirve |
+|---|---|
+| `notebook/01_exploracion.ipynb` | Análisis exploratorio y respuestas a las preguntas de negocio |
+| `notebook/analisis_productos_farmacias_detallado.ipynb` | Análisis por producto y categoría |
+| `BDA/preparar_datos_influxdb.ipynb` | Genera `ventas_diarias.csv`, `ventas_mensuales.csv` y `ventas_simuladas.csv` en `BDA/` |
+
+Todos leen el Excel con la ruta relativa `../Data/Pharmacy_data.xlsx`, así que hay que abrirlos desde su carpeta (Jupyter lo hace solo).
+
 ## Puesta en marcha rápida
 
-1. **Preparar datos**: Ejecutar `BDA/preparar_datos_influxdb.ipynb` para generar los CSV.
-2. **Levantar stack**: `./deploy.sh up` (la primera vez, también `influx-tokens` y `mcp-token`; ver *Primer arranque*)
-3. **Ingestar**: Abrir [Node-RED](http://127.0.0.1:1881) e iniciar los flujos `diario`, `mensual` y `simuladas`.
-4. **Visualizar**: Acceder a [Grafana](http://127.0.0.1:3000) con los dashboards preaprovisionados.
+1. **Datos**: los CSV que carga Node-RED ya están versionados en `BDA/`. Solo hace falta ejecutar `BDA/preparar_datos_influxdb.ipynb` si se quieren regenerar.
+2. **Levantar stack**: `./deploy.sh up` (la primera vez, también `influx-tokens` y `mcp-token`; ver *Primer arranque*).
+3. **Ingestar**: abrir [Node-RED](http://127.0.0.1:1881) y, en la pestaña *Flujo 1*, pulsar el botón del nodo *inject* de cada flujo (*Ventas Diarias CSV*, *Ventas Mensuales CSV* y *Ventas simuladas CSV*).
+4. **Visualizar**: acceder a [Grafana](http://127.0.0.1:3000) con los dashboards preaprovisionados.
 
 ## Estructura
 
 ```text
-├── Data/           # Dataset original
+├── Data/           # Dataset original (Pharmacy_data.xlsx)
 ├── notebook/       # Exploración y EDA
-├── BDA/            # Ingesta, Node-RED, Grafana, InfluxDB
+├── BDA/            # Ingesta, Node-RED, Grafana, InfluxDB y CSV de carga
 ├── SBD/            # Informe para el cliente
 ├── MIA/            # Propuesta de IA
 ├── docker-compose.yml
 ├── deploy.sh
+├── requirements.txt
 └── .env.example
 ```
 
@@ -113,7 +142,7 @@ El repositorio manda: `BDA/nodered/flows.json` se monta en el contenedor y `init
 ## Limitaciones conocidas
 
 - **`.env` está en `.gitignore`**: nunca subas tokens ni contraseñas al repositorio.
-- **CSV generados no se versionan**: el `.gitignore` excluye `*.csv`; los de `BDA/` están añadidos de forma explícita para versionar los datos de partida.
+- **Datos versionados**: el `.gitignore` excluye `*.csv` y `*.xlsx` salvo el dataset original y los tres CSV de `BDA/` que carga Node-RED; cualquier otro fichero generado (por ejemplo `ventas_diarias_detalle.csv`) se queda fuera.
 - **Limitación analítica**: no hay datos de clientes, de stock, de tráfico ni de competencia; el análisis de promociones mide unidades por venta, no número de clientes atraídos.
 - **Datos simulados**: ver la sección *Datos simulados*.
 
