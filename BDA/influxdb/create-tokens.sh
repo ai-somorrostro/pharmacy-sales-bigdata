@@ -5,8 +5,7 @@
 #
 # Se ejecuta DENTRO del contenedor de InfluxDB (lo lanza ./deploy.sh
 # influx-tokens) y usa las variables que el compose ya le pasa:
-#   DOCKER_INFLUXDB_INIT_ADMIN_TOKEN, DOCKER_INFLUXDB_INIT_ORG,
-#   DOCKER_INFLUXDB_INIT_BUCKET (bucket diario), INFLUX_BUCKET_MONTHLY
+#   DOCKER_INFLUXDB_INIT_ADMIN_TOKEN, DOCKER_INFLUXDB_INIT_ORG
 #
 # InfluxDB 2.x no permite elegir el valor de un token: siempre lo genera
 # él. Por eso los tokens se crean aquí y deploy.sh los copia al .env.
@@ -20,6 +19,9 @@ set -eu
 
 READ_DESC="grafana-read"
 WRITE_DESC="nodered-write"
+# Nombres fijos: los usan también los dashboards, las alertas y Node-RED
+DAILY_BUCKET="ventas_diarias"
+MONTHLY_BUCKET="ventas_mensuales"
 
 # Opciones comunes del CLI: siempre contra el servidor local y con el token de admin
 INFLUX_OPTS="--host http://localhost:8086 --token $DOCKER_INFLUXDB_INIT_ADMIN_TOKEN"
@@ -33,10 +35,10 @@ bucket_id() {
     influx bucket list $INFLUX_OPTS --org "$ORG" --name "$1" --hide-headers | awk 'NR==1 {print $1}'
 }
 
-DAILY_ID=$(bucket_id "$DOCKER_INFLUXDB_INIT_BUCKET")
-MONTHLY_ID=$(bucket_id "$INFLUX_BUCKET_MONTHLY")
+DAILY_ID=$(bucket_id "$DAILY_BUCKET")
+MONTHLY_ID=$(bucket_id "$MONTHLY_BUCKET")
 if [ -z "$DAILY_ID" ] || [ -z "$MONTHLY_ID" ]; then
-    log "No se encuentran los buckets '$DOCKER_INFLUXDB_INIT_BUCKET' y/o '$INFLUX_BUCKET_MONTHLY' en la org '$ORG'."
+    log "No se encuentran los buckets '$DAILY_BUCKET' y/o '$MONTHLY_BUCKET' en la org '$ORG'."
     exit 1
 fi
 
