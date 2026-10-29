@@ -11,6 +11,6 @@ datasources:
     jsonData:
       version: Flux
       organization: ${INFLUX_ORG}
-      defaultBucket: ${INFLUX_BUCKET_DAILY}
+      defaultBucket: ventas_diarias
     secureJsonData:
       token: ${INFLUX_READ_TOKEN}
