@@ -5,8 +5,9 @@
       "type": "remote",
       "url": "http://localhost:8000/mcp",
       "enabled": true,
+      "oauth": false,
       "headers": {
-        "Authorization": "Bearer {env:MCP_GRAFANA_SERVER_TOKEN}"
+        "Authorization": "Bearer {file:mcp-token.txt}"
       }
     }
   }
