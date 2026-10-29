@@ -21,7 +21,8 @@ Plataforma para el análisis y monitorización de ventas de una cadena de 120 fa
 ### Configuración
 ```bash
 cp .env.example .env
-# Editar .env: contraseñas, INFLUX_ADMIN_TOKEN y SMTP.
+# Editar .env: contraseñas, INFLUX_ADMIN_TOKEN y SMTP (ALERT_EMAIL = destinatario
+# de las alertas; vacío, se envían a SMTP_USER).
 # Deja vacíos INFLUX_READ_TOKEN, INFLUX_WRITE_TOKEN, GRAFANA_MCP_TOKEN y
 # MCP_GRAFANA_SERVER_TOKEN: se generan solos en el primer arranque.
 ```
@@ -58,6 +59,28 @@ Los tres se pueden repetir: crean tokens nuevos y sustituyen a los anteriores.
 | **MCP Grafana** | [http://127.0.0.1:8000/mcp](http://127.0.0.1:8000/mcp) | 8000 |
 
 > Todo expuesto solo en `localhost`. Los volúmenes garantizan la persistencia de datos.
+
+### Flujos de Node-RED
+
+El repositorio manda: `BDA/nodered/flows.json` se monta en el contenedor y `init-flows.sh` lo copia sobre el del volumen en cada arranque. Para aplicar un cambio del repo basta con `docker compose restart nodered`.
+
+- Lo que se cambie en el editor de Node-RED **se pierde al reiniciar** si no se exporta: *menú → Exportar → Todos los flujos* y guardar en `BDA/nodered/flows.json`.
+- La URL y la organización de InfluxDB no están escritas en el flujo: los nodos usan `${INFLUX_URL}` y `${INFLUX_ORG}`, que pasa `docker-compose.yml`.
+- El token tampoco: `init-flows.sh` escribe en `flows_cred.json` el texto `${INFLUX_WRITE_TOKEN}` y Node-RED lo sustituye por la variable de entorno al arrancar, así que no hay que escribirlo en el editor ni queda guardado en el volumen.
+
+## Datos simulados
+
+`ventas_simuladas.csv` copia las ventas diarias de 2025 al año 2026, con ruido y dos anomalías provocadas (una racha de 16 días con un 40 % menos de ventas y una bajada de precio de 10 días). **No son datos reales**: sirven para probar las alertas.
+
+- Se escriben en el bucket `ventas_diarias`, junto a los reales, con fechas de 2026.
+- Los dashboards consultan el rango 2024-01-01 → 2026-01-01, por lo que solo muestran datos reales.
+- Las alertas usan rangos relativos (últimos 30 días, últimos 12 meses), por lo que evalúan los datos simulados.
+
+> Si un dashboard pasa a usar un rango hasta `now`, incluirá los datos simulados en sus totales. Para evitarlo, termina el rango en `2026-01-01T00:00:00Z` o borra los simulados:
+> ```bash
+> docker compose exec influxdb influx delete --bucket ventas_diarias \
+>   --start 2026-01-01T00:00:00Z --stop 2100-01-01T00:00:00Z
+> ```
 
 ## Puesta en marcha rápida
 

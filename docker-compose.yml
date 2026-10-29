@@ -12,10 +12,11 @@ services:
       DOCKER_INFLUXDB_INIT_USERNAME: ${INFLUX_ADMIN_USER}
       DOCKER_INFLUXDB_INIT_PASSWORD: ${INFLUX_ADMIN_PASSWORD}
       DOCKER_INFLUXDB_INIT_ORG: ${INFLUX_ORG}
-      DOCKER_INFLUXDB_INIT_BUCKET: ${INFLUX_BUCKET_DAILY}
+      # Los nombres de los buckets están fijos: los usan también los
+      # dashboards, las alertas y los flujos de Node-RED
+      DOCKER_INFLUXDB_INIT_BUCKET: ventas_diarias
       DOCKER_INFLUXDB_INIT_RETENTION: "0"
       DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: ${INFLUX_ADMIN_TOKEN}
-      INFLUX_BUCKET_MONTHLY: ${INFLUX_BUCKET_MONTHLY}
     volumes:
       - influxdb-data:/var/lib/influxdb2
       - influxdb-config:/etc/influxdb2
@@ -40,14 +41,15 @@ services:
       GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD}
       # Variables que lee el aprovisionamiento del datasource
       INFLUX_ORG: ${INFLUX_ORG}
-      INFLUX_BUCKET_DAILY: ${INFLUX_BUCKET_DAILY}
       INFLUX_READ_TOKEN: ${INFLUX_READ_TOKEN}
       # Email para alertas
       GF_SMTP_ENABLED: "true"
-      GF_SMTP_HOST: smtp.gmail.com:587
+      GF_SMTP_HOST: ${SMTP_HOST:-smtp.gmail.com:587}
       GF_SMTP_USER: ${SMTP_USER}
       GF_SMTP_PASSWORD: ${SMTP_PASSWORD}
       GF_SMTP_FROM_ADDRESS: ${SMTP_USER}
+      # Destinatario de las alertas (contact-points.json); por defecto, SMTP_USER
+      ALERT_EMAIL: ${ALERT_EMAIL:-${SMTP_USER}}
       GF_SMTP_FROM_NAME: Grafana Farmacias
     volumes:
       - grafana-data:/var/lib/grafana
@@ -69,19 +71,19 @@ services:
     depends_on:
       influxdb:
         condition: service_healthy
-    # init-flows.sh inyecta INFLUX_WRITE_TOKEN en el nodo de InfluxDB
-    # y luego arranca el entrypoint original de Node-RED
+    # init-flows.sh copia el flows.json del repo y prepara el token de
+    # InfluxDB; luego arranca el entrypoint original de Node-RED
     entrypoint: ["/bin/sh", "/opt/init-flows.sh"]
     ports:
       - "127.0.0.1:1881:1880"
     environment:
       INFLUX_URL: http://influxdb:8086
       INFLUX_ORG: ${INFLUX_ORG}
-      INFLUX_BUCKET_DAILY: ${INFLUX_BUCKET_DAILY}
-      INFLUX_BUCKET_MONTHLY: ${INFLUX_BUCKET_MONTHLY}
       INFLUX_WRITE_TOKEN: ${INFLUX_WRITE_TOKEN}
     volumes:
       - nodered-data:/data
+      # El flujo del repo se copia a /data en cada arranque (init-flows.sh)
+      - ./BDA/nodered/flows.json:/opt/flows/flows.json:ro
       # CSV generados con el notebook; en los flujos se leen desde /csv
       - ${DATA_DIR:-./BDA}:/csv:ro
 

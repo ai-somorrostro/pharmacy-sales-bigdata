@@ -1,40 +1,53 @@
 #!/bin/sh
 # ------------------------------------------------------------------
-# init-flows.sh - Inyecta el token de escritura de InfluxDB en el
-# nodo de configuracion de Node-RED antes de arrancar el runtime.
+# init-flows.sh - Prepara los flujos de Node-RED antes de arrancar.
 #
-# El token llega por la variable INFLUX_WRITE_TOKEN (definida en el
-# .env y pasada al contenedor por docker-compose.yml). Solo se
-# modifica el campo "credentials.token" del nodo "influxdb": el
-# resto del flujo (incluidos los cambios hechos en el editor) se
-# respeta intacto.
+# 1) El repositorio manda: copia BDA/nodered/flows.json (montado en
+#    /opt/flows/flows.json) sobre /data/flows.json en cada arranque.
+#    Así los cambios del repo llegan al contenedor sin borrar el
+#    volumen. Lo que se cambie en el editor de Node-RED hay que
+#    exportarlo a BDA/nodered/flows.json o se pierde al reiniciar.
 #
-# Es necesario porque Node-RED cifra las credenciales por
-# instalacion: no se pueden versionar en flows.json.
+# 2) Escribe /data/flows_cred.json con el token de los nodos de
+#    configuración de InfluxDB. Node-RED solo lee las credenciales
+#    de ese fichero (las que hubiera dentro de flows.json las ignora
+#    al arrancar). Se guarda el texto literal ${INFLUX_WRITE_TOKEN}:
+#    Node-RED lo sustituye por la variable de entorno al cargar el
+#    nodo, de modo que el token real nunca se escribe en el volumen.
+#
+# Por el mismo mecanismo, flows.json usa ${INFLUX_URL} e
+# ${INFLUX_ORG}, que pasa docker-compose.yml.
 # ------------------------------------------------------------------
 set -e
 
+ORIGEN=/opt/flows/flows.json
 FLUJOS=/data/flows.json
+CREDENCIALES=/data/flows_cred.json
 
-if [ -z "${INFLUX_WRITE_TOKEN}" ]; then
-    echo "[init-flows] AVISO: INFLUX_WRITE_TOKEN no esta definido. El nodo de InfluxDB se quedara sin token."
-elif [ ! -f "$FLUJOS" ]; then
-    echo "[init-flows] AVISO: no se encuentra $FLUJOS"
+if [ -f "$ORIGEN" ]; then
+    cp "$ORIGEN" "$FLUJOS"
+    echo "[init-flows] flows.json copiado desde el repositorio"
 else
-    INFLUX_WRITE_TOKEN="$INFLUX_WRITE_TOKEN" FLUJOS="$FLUJOS" node -e '
+    echo "[init-flows] AVISO: no se encuentra $ORIGEN; se usa el flows.json del volumen"
+fi
+
+if [ -z "${INFLUX_WRITE_TOKEN:-}" ]; then
+    echo "[init-flows] AVISO: INFLUX_WRITE_TOKEN está vacío. Ejecuta ./deploy.sh influx-tokens"
+fi
+
+if [ -f "$FLUJOS" ]; then
+    FLUJOS="$FLUJOS" CREDENCIALES="$CREDENCIALES" node -e '
         const fs = require("fs");
-        const file = process.env.FLUJOS;
-        const flows = JSON.parse(fs.readFileSync(file, "utf8"));
-        let n = 0;
-        for (const flow of flows) {
-            if (flow.type === "influxdb") {
-                flow.credentials = flow.credentials || {};
-                flow.credentials.token = process.env.INFLUX_WRITE_TOKEN;
-                n++;
+        const flows = JSON.parse(fs.readFileSync(process.env.FLUJOS, "utf8"));
+        const creds = {};
+        for (const n of flows) {
+            if (n.type === "influxdb") {
+                // Texto literal: lo resuelve Node-RED con la variable de entorno
+                creds[n.id] = { token: "${INFLUX_WRITE_TOKEN}" };
             }
         }
-        fs.writeFileSync(file, JSON.stringify(flows, null, 4) + "\n");
-        console.log(`[init-flows] token de InfluxDB actualizado en ${n} nodo(s) de configuracion`);
+        fs.writeFileSync(process.env.CREDENCIALES, JSON.stringify(creds, null, 4) + "\n");
+        console.log("[init-flows] token de InfluxDB asignado a " + Object.keys(creds).length + " nodo(s) de configuración");
     '
 fi
 
