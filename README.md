@@ -110,6 +110,17 @@ El repositorio manda: `BDA/nodered/flows.json` se monta en el contenedor y `init
 | **BDA** | `BDA/BDA_AimarMora.pdf` |
 | **MIA** | `MIA/MIA_farmacia.docx` |
 
+## Limitaciones conocidas
+
+- **`.env` está en `.gitignore`**: nunca subas tokens ni contraseñas al repositorio.
+- **CSV generados no se versionan**: el `.gitignore` excluye `*.csv`; los de `BDA/` están añadidos de forma explícita para versionar los datos de partida.
+- **Limitación analítica**: no hay datos de clientes, de stock, de tráfico ni de competencia; el análisis de promociones mide unidades por venta, no número de clientes atraídos.
+- **Datos simulados**: ver la sección *Datos simulados*.
+
 ## Licencia
 
 Código con fines académicos. Dataset *European Pharmacy Sales* (Kaggle) bajo **licencia MIT**. Componentes de terceros con sus respectivas licencias.
+
+## Autores
+
+- **Aimar Mora**
